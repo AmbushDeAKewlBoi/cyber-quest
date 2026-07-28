@@ -3,7 +3,7 @@
 Cyber Quest is a playable, story-driven cybersecurity learning demo for
 elementary and middle school students.
 
-Players follow the disappearance of Bolt, the Robot Club helper, through six
+Players follow the disappearance of Bolt, the Robot Club helper, through twelve
 progressive challenges:
 
 - hidden text and webpage clues
@@ -12,6 +12,10 @@ progressive challenges:
 - password safety
 - a simulated command-line terminal
 - safe incident response and account recovery
+- suspicious URLs and app permissions
+- trusted Wi-Fi and photo metadata
+- simple cipher decoding
+- layered security planning
 
 ## Run locally
 

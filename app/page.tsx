@@ -124,6 +124,108 @@ const challenges: Challenge[] = [
     answer: "report-reset-mfa-update",
     placeholder: "Choose the safe response",
   },
+  {
+    id: 7,
+    title: "The Look-Alike Link",
+    subtitle: "Choose the real club website",
+    points: 150,
+    skill: "URL safety",
+    tool: "Browser",
+    objective: "Choose the real Robot Club website before signing in.",
+    briefing:
+      "Bolt is safe, but the fake update left a login link in the club bookmarks. Compare both addresses and choose the real school domain.",
+    hint: "Read from the end of each domain. The real address ends exactly in robotclub.school.",
+    manualTitle: "Reading a URL",
+    manual:
+      "The registered domain appears just before the first slash. Padlocks protect the connection, but they do not prove a website belongs to your school.",
+    answer: "robotclub.school",
+    placeholder: "Choose the real website",
+  },
+  {
+    id: 8,
+    title: "Permission Patrol",
+    subtitle: "Limit a helper app",
+    points: 150,
+    skill: "App permissions",
+    tool: "Tablet",
+    objective: "Give the robot camera app only the permission it needs.",
+    briefing:
+      "A new camera controller wants access to almost everything on the club tablet. Bolt only needs it to scan science-fair badges.",
+    hint: "A badge scanner needs the camera while you use it—not contacts, messages, or your location.",
+    manualTitle: "Least privilege",
+    manual:
+      "Apps should receive only the permissions required for their job. Deny unrelated access and prefer “while using the app” when available.",
+    answer: "camera-while-using",
+    placeholder: "Choose the safest permissions",
+  },
+  {
+    id: 9,
+    title: "Wi-Fi Impostor",
+    subtitle: "Join the trusted network",
+    points: 160,
+    skill: "Wi-Fi safety",
+    tool: "Network list",
+    objective: "Connect the fair tablet to the trusted school network.",
+    briefing:
+      "Three networks appear near the science fair. One is the protected school network; the others could expose club traffic.",
+    hint: "Use the exact network name posted by the teacher and choose the one marked secured.",
+    manualTitle: "Safer Wi-Fi",
+    manual:
+      "Attackers can copy familiar network names. Confirm the exact name with a trusted adult and avoid open networks for accounts or private information.",
+    answer: "CQ-School-Secure",
+    placeholder: "Choose the trusted network",
+  },
+  {
+    id: 10,
+    title: "Photo Footprints",
+    subtitle: "Remove hidden location data",
+    points: 160,
+    skill: "Metadata privacy",
+    tool: "Photo share",
+    objective: "Share the Bolt photo without revealing its exact location.",
+    briefing:
+      "The team wants to post a victory photo. Its hidden details include where and when the picture was taken.",
+    hint: "Keep the photo, but remove the exact GPS location before posting it publicly.",
+    manualTitle: "Photo metadata",
+    manual:
+      "Photos can store device, time, and GPS details. Review or remove location metadata before sharing an image publicly.",
+    answer: "remove-location",
+    placeholder: "Choose a privacy-safe share option",
+  },
+  {
+    id: 11,
+    title: "Shifted Schedule",
+    subtitle: "Decode the final meetup",
+    points: 180,
+    skill: "Simple ciphers",
+    tool: "Decoder",
+    objective: "Shift each letter back five places and enter the message.",
+    briefing:
+      "Riley protected the final setup time with a simple letter shift. Decode it so the club arrives before the doors open.",
+    hint: "R becomes M, J becomes E, and Y becomes T. Keep the spaces in the message.",
+    manualTitle: "Caesar shifts",
+    manual:
+      "A Caesar shift moves every letter by the same number of places. It is useful for puzzles, but it is not secure encryption.",
+    answer: "MEET AT NOON",
+    placeholder: "Enter the decoded message",
+  },
+  {
+    id: 12,
+    title: "Science Fair Shield",
+    subtitle: "Lock down the launch",
+    points: 220,
+    skill: "Security planning",
+    tool: "Launch checklist",
+    objective: "Choose the complete plan that keeps the fair launch safe.",
+    briefing:
+      "The doors open in minutes. Use everything you learned to finish Bolt’s security checklist and launch the science fair safely.",
+    hint: "Verify the real updater, install approved updates, back up the project, and lock unattended devices.",
+    manualTitle: "Defense in layers",
+    manual:
+      "Good security uses several layers: trusted sources, current software, recoverable backups, strong account protection, and locked devices.",
+    answer: "verify-update-backup-lock",
+    placeholder: "Choose the complete launch plan",
+  },
 ];
 
 const levelCards = [
@@ -131,7 +233,7 @@ const levelCards = [
     id: 1,
     title: "Signal Lost",
     description: "Find Bolt before the science fair begins.",
-    meta: "6 challenges · Beginner",
+    meta: "12 challenges · Beginner",
     unlocked: true,
     theme: "lab",
   },
@@ -170,6 +272,42 @@ const confettiPieces = Array.from({ length: 36 }, (_, index) => ({
   rotation: `${180 + ((index * 83) % 420)}deg`,
 }));
 
+const choiceChallengeIds = new Set([3, 4, 6, 7, 8, 9, 10, 12]);
+
+const choiceLabels: Record<string, string> = {
+  sender: "Sender address selected",
+  copy: "Email content selected",
+  "robotclub.school": "robotclub.school selected",
+  "robot-club-school.example-login.net": "example-login.net selected",
+  "camera-while-using": "Camera only · while using selected",
+  "camera-contacts-location": "Camera, contacts, and location selected",
+  "allow-everything": "Allow everything selected",
+  "CQ-School-Secure": "CQ-School-Secure selected",
+  "CQ_School_Free": "CQ_School_Free selected",
+  "ScienceFair-Guest": "ScienceFair-Guest selected",
+  "remove-location": "Remove exact location selected",
+  "share-all-details": "Share all hidden details selected",
+  "blur-only": "Blur the background selected",
+  "verify-update-backup-lock": "Complete launch plan selected",
+  "skip-backup": "Fast launch plan selected",
+  "reuse-email-update": "Email attachment plan selected",
+};
+
+const challengeGraphicLabels = [
+  "ABOUT",
+  "← TEXT",
+  "@ MAIL",
+  "••••",
+  ">_",
+  "✓ SAFE",
+  "URL?",
+  "ALLOW",
+  "WI-FI",
+  "EXIF",
+  "A→F",
+  "SHIELD",
+];
+
 function Icon({ name }: { name: string }) {
   const symbols: Record<string, string> = {
     website: "▣",
@@ -198,6 +336,7 @@ export default function Home() {
   const [selectedPart, setSelectedPart] = useState("");
   const [selectedPassword, setSelectedPassword] = useState("");
   const [selectedRecovery, setSelectedRecovery] = useState("");
+  const [selectedOption, setSelectedOption] = useState("");
   const [hiddenRevealed, setHiddenRevealed] = useState(false);
   const [terminalInput, setTerminalInput] = useState("");
   const [terminalLines, setTerminalLines] = useState([
@@ -214,6 +353,10 @@ export default function Home() {
   const activeIndex = challenges.findIndex((item) => item.id === activeChallengeId);
   const totalPoints = completed.reduce(
     (sum, id) => sum + (challenges.find((item) => item.id === id)?.points ?? 0),
+    0,
+  );
+  const totalAvailablePoints = challenges.reduce(
+    (sum, challenge) => sum + challenge.points,
     0,
   );
   const levelComplete = completed.length === challenges.length;
@@ -245,6 +388,7 @@ export default function Home() {
     setSelectedPart("");
     setSelectedPassword("");
     setSelectedRecovery("");
+    setSelectedOption("");
     setHiddenRevealed(false);
     setTerminalInput("");
     setTerminalLines([
@@ -278,7 +422,7 @@ export default function Home() {
     }
 
     setFeedback(
-      activeChallengeId === 3 || activeChallengeId === 4 || activeChallengeId === 6
+      choiceChallengeIds.has(activeChallengeId)
         ? "Not quite. Check the objective and try another choice."
         : "That answer does not match yet. Check the challenge or open a hint.",
     );
@@ -293,7 +437,9 @@ export default function Home() {
           ? selectedPassword
           : activeChallengeId === 6
             ? selectedRecovery
-            : answer.trim();
+            : choiceChallengeIds.has(activeChallengeId)
+              ? selectedOption
+              : answer.trim();
 
     checkAnswer(submitted);
   }
@@ -510,13 +656,13 @@ export default function Home() {
                 <p className="kicker">LEVEL 1 · BEGINNER</p>
                 <h1>Signal Lost</h1>
                 <p>
-                  Bolt disappeared one hour before the school science fair. Follow six clues to
-                  find the robot and secure the club account.
+                  Bolt disappeared one hour before the school science fair. Follow twelve clues
+                  to find the robot, secure the club account, and protect the launch.
                 </p>
               </div>
               <div className="level-score">
-                <span>{completed.length} / 6 complete</span>
-                <strong>{totalPoints} / 790 points</strong>
+                <span>{completed.length} / {challenges.length} complete</span>
+                <strong>{totalPoints} / {totalAvailablePoints} points</strong>
                 <div>
                   <i style={{ width: `${progressPercent}%` }} />
                 </div>
@@ -557,19 +703,7 @@ export default function Home() {
                       <span />
                       <span />
                       <span />
-                      <strong>
-                        {challenge.id === 1
-                          ? "ABOUT"
-                          : challenge.id === 2
-                            ? "← TEXT"
-                            : challenge.id === 3
-                              ? "@ MAIL"
-                              : challenge.id === 4
-                                ? "••••"
-                                : challenge.id === 5
-                                  ? ">_"
-                                  : "✓ SAFE"}
-                      </strong>
+                      <strong>{challengeGraphicLabels[challenge.id - 1]}</strong>
                     </div>
                     {!unlocked && (
                       <div className="card-lock">
@@ -661,23 +795,21 @@ export default function Home() {
 
             <form className="answer-form" onSubmit={submitAnswer}>
               <label htmlFor="challenge-answer">
-                {activeChallengeId === 3 || activeChallengeId === 4 || activeChallengeId === 6
+                {choiceChallengeIds.has(activeChallengeId)
                   ? "Your choice"
                   : "Your answer"}
               </label>
-              {activeChallengeId === 3 || activeChallengeId === 4 || activeChallengeId === 6 ? (
+              {choiceChallengeIds.has(activeChallengeId) ? (
                 <div className="selection-status" id="challenge-answer">
                   {activeChallengeId === 3
-                    ? selectedPart
-                      ? selectedPart === "sender"
-                        ? "Sender address selected"
-                        : "Email content selected"
-                      : "Nothing selected yet"
+                    ? choiceLabels[selectedPart] || "Nothing selected yet"
                     : activeChallengeId === 4
                       ? selectedPassword || "Nothing selected yet"
-                      : selectedRecovery
-                        ? "Response selected"
-                        : "Nothing selected yet"}
+                      : activeChallengeId === 6
+                        ? selectedRecovery
+                          ? "Response selected"
+                          : "Nothing selected yet"
+                        : choiceLabels[selectedOption] || "Nothing selected yet"}
                 </div>
               ) : (
                 <input
@@ -720,7 +852,7 @@ export default function Home() {
           <div className="challenge-main">
             <div className="challenge-stage-heading">
               <div>
-                <span>CHALLENGE {activeChallenge.id} OF 6</span>
+                <span>CHALLENGE {activeChallenge.id} OF {challenges.length}</span>
                 <h2>{activeChallenge.objective}</h2>
               </div>
               <button onClick={() => setView("challenge-grid")}>View all challenges</button>
@@ -960,6 +1092,339 @@ export default function Home() {
                     </div>
                   )}
                 </div>
+              </div>
+            )}
+
+            {activeChallengeId === 7 && (
+              <div className="browser-frame url-challenge">
+                <BrowserBar url="browser://bookmarks/robot-club" />
+                <div className="url-lab">
+                  <div className="url-lab-heading">
+                    <span className="url-shield">URL</span>
+                    <div>
+                      <small>BOOKMARK SAFETY CHECK</small>
+                      <h3>Which website really belongs to Robot Club?</h3>
+                      <p>Both use HTTPS. Inspect the complete domain before choosing.</p>
+                    </div>
+                  </div>
+                  <div className="url-options">
+                    {[
+                      {
+                        value: "robot-club-school.example-login.net",
+                        label: "Shared in the update email",
+                        protocol: "https://",
+                        domain: "robot-club-school.example-login.net",
+                        path: "/signin",
+                      },
+                      {
+                        value: "robotclub.school",
+                        label: "Saved by Ms. Alvarez",
+                        protocol: "https://",
+                        domain: "robotclub.school",
+                        path: "/members",
+                      },
+                    ].map((option) => (
+                      <button
+                        key={option.value}
+                        className={selectedOption === option.value ? "selected" : ""}
+                        onClick={() => chooseAnswer(option.value, setSelectedOption)}
+                      >
+                        <span className="url-option-label">{option.label}</span>
+                        <code>
+                          <i>{option.protocol}</i>
+                          <strong>{option.domain}</strong>
+                          <em>{option.path}</em>
+                        </code>
+                        <small>Click to choose this domain</small>
+                      </button>
+                    ))}
+                  </div>
+                  <div className="url-tip">
+                    <strong>Remember:</strong> a padlock means the connection is encrypted—not
+                    that the website is trustworthy.
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeChallengeId === 8 && (
+              <div className="device-stage permission-challenge">
+                <div className="tablet-shell">
+                  <div className="tablet-camera" />
+                  <div className="tablet-screen">
+                    <div className="tablet-status">
+                      <span>9:42</span>
+                      <span>Robot Club Tablet · 82%</span>
+                    </div>
+                    <div className="permission-app">
+                      <span className="scanner-icon">B</span>
+                      <div>
+                        <small>NEW APP</small>
+                        <h3>Bolt Badge Scanner</h3>
+                        <p>Choose what this app can use.</p>
+                      </div>
+                    </div>
+                    <div className="permission-options">
+                      {[
+                        {
+                          value: "camera-while-using",
+                          title: "Camera · while using the app",
+                          copy: "No contacts, messages, microphone, or location.",
+                          badge: "MINIMUM",
+                        },
+                        {
+                          value: "camera-contacts-location",
+                          title: "Camera, contacts, and precise location",
+                          copy: "Allow access every time the tablet is on.",
+                          badge: "EXTRA ACCESS",
+                        },
+                        {
+                          value: "allow-everything",
+                          title: "Allow every permission",
+                          copy: "Let the app decide what it needs later.",
+                          badge: "FULL ACCESS",
+                        },
+                      ].map((option) => (
+                        <button
+                          key={option.value}
+                          className={selectedOption === option.value ? "selected" : ""}
+                          onClick={() => chooseAnswer(option.value, setSelectedOption)}
+                        >
+                          <i>{selectedOption === option.value ? "✓" : ""}</i>
+                          <span>
+                            <small>{option.badge}</small>
+                            <strong>{option.title}</strong>
+                            <em>{option.copy}</em>
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeChallengeId === 9 && (
+              <div className="network-stage wifi-challenge">
+                <div className="wifi-card">
+                  <div className="wifi-heading">
+                    <span className="wifi-mark">)))</span>
+                    <div>
+                      <small>AVAILABLE NETWORKS</small>
+                      <h3>Choose a network</h3>
+                      <p>Teacher’s network card: <strong>CQ-School-Secure</strong></p>
+                    </div>
+                  </div>
+                  <div className="wifi-list">
+                    {[
+                      {
+                        value: "CQ_School_Free",
+                        security: "Open · no password",
+                        strength: 3,
+                      },
+                      {
+                        value: "CQ-School-Secure",
+                        security: "Secured · school certificate",
+                        strength: 4,
+                      },
+                      {
+                        value: "ScienceFair-Guest",
+                        security: "Open · sign-in page",
+                        strength: 4,
+                      },
+                    ].map((network) => (
+                      <button
+                        key={network.value}
+                        className={selectedOption === network.value ? "selected" : ""}
+                        onClick={() => chooseAnswer(network.value, setSelectedOption)}
+                      >
+                        <span className="signal-bars" aria-hidden="true">
+                          {Array.from({ length: 4 }, (_, index) => (
+                            <i className={index < network.strength ? "on" : ""} key={index} />
+                          ))}
+                        </span>
+                        <span>
+                          <strong>{network.value}</strong>
+                          <small>{network.security}</small>
+                        </span>
+                        <em>{network.security.startsWith("Secured") ? "LOCKED" : "OPEN"}</em>
+                      </button>
+                    ))}
+                  </div>
+                  <div className="network-warning">
+                    Network names can be copied. Match every character with a trusted source.
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeChallengeId === 10 && (
+              <div className="photo-stage metadata-challenge">
+                <div className="photo-preview">
+                  <div className="photo-sky" />
+                  <div className="photo-floor" />
+                  <div className="photo-bolt">
+                    <i />
+                    <i />
+                    <span />
+                  </div>
+                  <strong>BOLT IS BACK!</strong>
+                </div>
+                <div className="metadata-panel">
+                  <small>PUBLIC POST PREVIEW</small>
+                  <h3>Review hidden photo details</h3>
+                  <div className="metadata-list">
+                    <span>
+                      <i>DEVICE</i>
+                      Club Tablet 4
+                    </span>
+                    <span>
+                      <i>TAKEN</i>
+                      Today · 9:48 AM
+                    </span>
+                    <span className="sensitive">
+                      <i>GPS</i>
+                      39.9517, -75.1912 · Science Lab entrance
+                    </span>
+                  </div>
+                  <div className="metadata-options">
+                    {[
+                      {
+                        value: "share-all-details",
+                        title: "Post with all details",
+                        copy: "Keep the device, time, and exact GPS location.",
+                      },
+                      {
+                        value: "blur-only",
+                        title: "Blur the background",
+                        copy: "Change the picture but keep its hidden GPS details.",
+                      },
+                      {
+                        value: "remove-location",
+                        title: "Remove exact location",
+                        copy: "Keep the photo, but strip its GPS details before posting.",
+                      },
+                    ].map((option) => (
+                      <button
+                        key={option.value}
+                        className={selectedOption === option.value ? "selected" : ""}
+                        onClick={() => chooseAnswer(option.value, setSelectedOption)}
+                      >
+                        <i>{selectedOption === option.value ? "✓" : ""}</i>
+                        <span>
+                          <strong>{option.title}</strong>
+                          <small>{option.copy}</small>
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeChallengeId === 11 && (
+              <div className="decoder-stage cipher-challenge">
+                <div className="decoder-header">
+                  <span>ROT</span>
+                  <div>
+                    <small>RILEY’S SHIFT DECODER</small>
+                    <h3>Move every letter back 5 places</h3>
+                  </div>
+                </div>
+                <div className="cipher-message">RJJY FY STTS</div>
+                <div className="shift-example">
+                  <span>
+                    <i>ENCRYPTED</i>
+                    F G H I J K L M N O P Q R S T U V W X Y Z A B C D E
+                  </span>
+                  <span>
+                    <i>ORIGINAL</i>
+                    A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
+                  </span>
+                </div>
+                <div className="decoder-clues">
+                  <span>
+                    <strong>R → M</strong>
+                    move back five
+                  </span>
+                  <span>
+                    <strong>J → E</strong>
+                    repeat letters
+                  </span>
+                  <span>
+                    <strong>Y → T</strong>
+                    preserve spaces
+                  </span>
+                </div>
+                <p>Enter the full decoded message in the answer box.</p>
+              </div>
+            )}
+
+            {activeChallengeId === 12 && (
+              <div className="launch-stage final-challenge">
+                <div className="launch-heading">
+                  <div className="launch-badge">CQ</div>
+                  <div>
+                    <small>SCIENCE FAIR · FINAL READINESS CHECK</small>
+                    <h3>Choose Bolt’s launch plan</h3>
+                    <p>One plan protects the project before, during, and after launch.</p>
+                  </div>
+                  <span className="launch-time">T− 08:00</span>
+                </div>
+                <div className="launch-options">
+                  {[
+                    {
+                      value: "reuse-email-update",
+                      title: "Use the fastest update",
+                      steps: [
+                        "Open the update from the email",
+                        "Reuse the club password",
+                        "Leave tablets unlocked",
+                      ],
+                    },
+                    {
+                      value: "skip-backup",
+                      title: "Launch now, protect later",
+                      steps: [
+                        "Skip the backup to save time",
+                        "Join any available Wi-Fi",
+                        "Update after the fair",
+                      ],
+                    },
+                    {
+                      value: "verify-update-backup-lock",
+                      title: "Verify, update, back up, lock",
+                      steps: [
+                        "Use the real school updater",
+                        "Back up the Bolt project",
+                        "Lock unattended devices",
+                      ],
+                    },
+                  ].map((option) => (
+                    <button
+                      key={option.value}
+                      className={selectedOption === option.value ? "selected" : ""}
+                      onClick={() => chooseAnswer(option.value, setSelectedOption)}
+                    >
+                      <span className="plan-number">0{option.value === "reuse-email-update" ? 1 : option.value === "skip-backup" ? 2 : 3}</span>
+                      <strong>{option.title}</strong>
+                      <ul>
+                        {option.steps.map((step) => (
+                          <li key={step}>{step}</li>
+                        ))}
+                      </ul>
+                    </button>
+                  ))}
+                </div>
+                {levelComplete && (
+                  <div className="final-complete-banner">
+                    <Icon name="star" />
+                    <div>
+                      <strong>Level 1 complete · 12 / 12</strong>
+                      <span>Bolt is online, the club is protected, and the fair can begin.</span>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

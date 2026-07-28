@@ -29,7 +29,7 @@ The challenge workspace always keeps the same controls in the same place:
 
 ## Playable level: Signal Lost
 
-One hour before the school science fair, the Robot Club’s helper robot Bolt disappears from the network. Six connected challenges follow the clues and teach one concept at a time:
+One hour before the school science fair, the Robot Club’s helper robot Bolt disappears from the network. Twelve connected challenges follow the clues, recover Bolt, and secure the science-fair launch one concept at a time:
 
 1. **Hidden in Plain Sight** — reveal hidden webpage text.
 2. **Mixed-Up Message** — recognize and reverse a simple text pattern.
@@ -37,8 +37,14 @@ One hour before the school science fair, the Robot Club’s helper robot Bolt di
 4. **Password Pitfall** — choose a long, unique password.
 5. **Terminal Trail** — use `ls` and `cat` in a training terminal.
 6. **Bring Bolt Home** — choose the correct reporting and recovery steps.
+7. **The Look-Alike Link** — compare full domains and choose the real club site.
+8. **Permission Patrol** — apply least privilege to a badge-scanner app.
+9. **Wi-Fi Impostor** — match a secured network with a trusted source.
+10. **Photo Footprints** — remove precise GPS metadata before sharing.
+11. **Shifted Schedule** — decode a simple Caesar-shift message.
+12. **Science Fair Shield** — choose a layered launch-security plan.
 
-Total level score: 790 points.
+Total level score: 1,810 points.
 
 ## Design system
 

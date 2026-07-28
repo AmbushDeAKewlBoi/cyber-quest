@@ -42,7 +42,7 @@ test("server-renders the Cyber Quest level dashboard", async () => {
   assert.doesNotMatch(html, /Cipher Scouts|codex-preview|Your site is taking shape/);
 });
 
-test("ships six progressive challenges and the requested workspace controls", async () => {
+test("ships twelve progressive challenges and the requested workspace controls", async () => {
   const [page, css, packageJson] = await Promise.all([
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
@@ -51,6 +51,14 @@ test("ships six progressive challenges and the requested workspace controls", as
 
   assert.match(page, /Hidden in Plain Sight/);
   assert.match(page, /Bring Bolt Home/);
+  assert.match(page, /The Look-Alike Link/);
+  assert.match(page, /Permission Patrol/);
+  assert.match(page, /Wi-Fi Impostor/);
+  assert.match(page, /Photo Footprints/);
+  assert.match(page, /Shifted Schedule/);
+  assert.match(page, /Science Fair Shield/);
+  assert.match(page, /CHALLENGE \{activeChallenge\.id\} OF \{challenges\.length\}/);
+  assert.match(page, /12 challenges · Beginner/);
   assert.match(page, /Finish a challenge to unlock the next one/);
   assert.match(page, /Briefing/);
   assert.match(page, /Field manual/);
