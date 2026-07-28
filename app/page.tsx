@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { type CSSProperties, FormEvent, useMemo, useState } from "react";
 
 type View = "levels" | "challenge-grid" | "challenge";
 type Panel = "briefing" | "manual" | "hint";
@@ -161,6 +161,15 @@ const levelCards = [
   },
 ];
 
+const confettiPieces = Array.from({ length: 36 }, (_, index) => ({
+  color: ["#35b96f", "#f6c445", "#2e74b5", "#ee6c5b", "#8b5cf6"][index % 5],
+  delay: `${(index % 9) * 0.045}s`,
+  duration: `${1.4 + (index % 6) * 0.12}s`,
+  left: `${3 + ((index * 29) % 94)}%`,
+  drift: `${-70 + ((index * 47) % 140)}px`,
+  rotation: `${180 + ((index * 83) % 420)}deg`,
+}));
+
 function Icon({ name }: { name: string }) {
   const symbols: Record<string, string> = {
     website: "▣",
@@ -195,6 +204,11 @@ export default function Home() {
     "Cyber Quest training terminal",
     "Type help if you need the available commands.",
   ]);
+  const [celebration, setCelebration] = useState<{
+    key: number;
+    challengeId: number;
+    flag: string;
+  } | null>(null);
 
   const activeChallenge = challenges.find((item) => item.id === activeChallengeId)!;
   const activeIndex = challenges.findIndex((item) => item.id === activeChallengeId);
@@ -245,10 +259,28 @@ export default function Home() {
     if (!completed.includes(activeChallengeId)) {
       setCompleted((current) => [...current, activeChallengeId]);
     }
+    setCelebration({
+      key: Date.now(),
+      challengeId: activeChallengeId,
+      flag: activeChallenge.answer,
+    });
     setFeedback(
       activeChallengeId === challenges.length
         ? "Level complete! Bolt is back online."
         : `Correct! Challenge ${activeChallengeId + 1} is now unlocked.`,
+    );
+  }
+
+  function checkAnswer(submitted: string) {
+    if (submitted.toLowerCase() === activeChallenge.answer.toLowerCase()) {
+      markComplete();
+      return;
+    }
+
+    setFeedback(
+      activeChallengeId === 3 || activeChallengeId === 4 || activeChallengeId === 6
+        ? "Not quite. Check the objective and try another choice."
+        : "That answer does not match yet. Check the challenge or open a hint.",
     );
   }
 
@@ -263,16 +295,15 @@ export default function Home() {
             ? selectedRecovery
             : answer.trim();
 
-    if (submitted.toLowerCase() === activeChallenge.answer.toLowerCase()) {
-      markComplete();
-      return;
-    }
+    checkAnswer(submitted);
+  }
 
-    setFeedback(
-      activeChallengeId === 3 || activeChallengeId === 4 || activeChallengeId === 6
-        ? "Not quite. Check the objective and try another choice."
-        : "That answer does not match yet. Check the challenge or open a hint.",
-    );
+  function chooseAnswer(
+    value: string,
+    select: (choice: string) => void,
+  ) {
+    select(value);
+    checkAnswer(value);
   }
 
   function goToAdjacent(direction: -1 | 1) {
@@ -319,6 +350,61 @@ export default function Home() {
       <a className="skip-link" href="#main-content">
         Skip to main content
       </a>
+
+      {celebration && (
+        <div className="success-celebration" key={celebration.key}>
+          <div className="confetti-burst" aria-hidden="true">
+            {confettiPieces.map((piece, index) => (
+              <i
+                key={index}
+                style={
+                  {
+                    "--confetti-color": piece.color,
+                    "--confetti-delay": piece.delay,
+                    "--confetti-duration": piece.duration,
+                    "--confetti-left": piece.left,
+                    "--confetti-drift": piece.drift,
+                    "--confetti-rotation": piece.rotation,
+                  } as CSSProperties
+                }
+              />
+            ))}
+          </div>
+          <section className="flag-notification" role="status" aria-live="assertive">
+            <button
+              className="flag-close"
+              onClick={() => setCelebration(null)}
+              aria-label="Close success notification"
+            >
+              ×
+            </button>
+            <span className="flag-check" aria-hidden="true">
+              ✓
+            </span>
+            <div>
+              <small>CHALLENGE {celebration.challengeId} COMPLETE</small>
+              <strong>Flag captured!</strong>
+              <code>{celebration.flag}</code>
+            </div>
+            <button
+              className="flag-continue"
+              onClick={() => {
+                const nextId = celebration.challengeId + 1;
+                setCelebration(null);
+                if (nextId <= challenges.length) {
+                  openChallenge(nextId);
+                } else {
+                  setView("challenge-grid");
+                }
+              }}
+            >
+              {celebration.challengeId < challenges.length
+                ? "Next challenge →"
+                : "View completed level"}
+            </button>
+          </section>
+        </div>
+      )}
 
       {view !== "challenge" && (
         <header className="cq-header">
@@ -726,7 +812,7 @@ export default function Home() {
                         <h3>URGENT: Bolt requires an update</h3>
                         <button
                           className={selectedPart === "sender" ? "selected-evidence" : ""}
-                          onClick={() => setSelectedPart("sender")}
+                          onClick={() => chooseAnswer("sender", setSelectedPart)}
                         >
                           School IT &lt;updates@robotcIub.school&gt;
                           <span>Click to select</span>
@@ -735,7 +821,7 @@ export default function Home() {
                     </header>
                     <button
                       className={`email-copy ${selectedPart === "copy" ? "selected-evidence" : ""}`}
-                      onClick={() => setSelectedPart("copy")}
+                      onClick={() => chooseAnswer("copy", setSelectedPart)}
                     >
                       Hello Robot Club,
                       <br />
@@ -769,7 +855,7 @@ export default function Home() {
                       <button
                         key={option}
                         className={selectedPassword === option ? "selected" : ""}
-                        onClick={() => setSelectedPassword(option)}
+                        onClick={() => chooseAnswer(option, setSelectedPassword)}
                       >
                         <span>{option}</span>
                         <i>{selectedPassword === option ? "✓" : ""}</i>
@@ -854,7 +940,7 @@ export default function Home() {
                       <button
                         key={option.value}
                         className={selectedRecovery === option.value ? "selected" : ""}
-                        onClick={() => setSelectedRecovery(option.value)}
+                        onClick={() => chooseAnswer(option.value, setSelectedRecovery)}
                       >
                         <i>{selectedRecovery === option.value ? "✓" : ""}</i>
                         <span>

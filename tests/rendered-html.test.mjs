@@ -59,8 +59,11 @@ test("ships six progressive challenges and the requested workspace controls", as
   assert.match(page, /Next/);
   assert.match(page, /cat bolt\.txt/);
   assert.match(page, /aria-live="polite"/);
-  assert.match(css, /grid-template-columns:\s*310px minmax\(0,\s*1fr\)/);
+  assert.match(page, /Flag captured!/);
+  assert.match(page, /chooseAnswer\("sender", setSelectedPart\)/);
+  assert.match(css, /@keyframes confetti-fall/);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
+  assert.match(css, /grid-template-columns:\s*310px minmax\(0,\s*1fr\)/);
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);
   await access(new URL("../public/og.png", import.meta.url));
 });
