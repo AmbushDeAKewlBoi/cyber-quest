@@ -54,9 +54,14 @@ test("ships twelve progressive challenges and the requested workspace controls",
   assert.match(page, /The Look-Alike Link/);
   assert.match(page, /Permission Patrol/);
   assert.match(page, /Wi-Fi Impostor/);
-  assert.match(page, /Photo Footprints/);
-  assert.match(page, /Shifted Schedule/);
-  assert.match(page, /Science Fair Shield/);
+  assert.match(page, /Login Log Hunt/);
+  assert.match(page, /File Fingerprint/);
+  assert.match(page, /Junior SOC Shift/);
+  assert.match(page, /Foundation/);
+  assert.match(page, /Junior Analyst/);
+  assert.match(page, /203\.0\.113\.42/);
+  assert.match(page, /SHA-256 INTEGRITY CHECK/);
+  assert.match(page, /contain-reset-verify-report/);
   assert.match(page, /CHALLENGE \{activeChallenge\.id\} OF \{challenges\.length\}/);
   assert.match(page, /12 challenges · Beginner/);
   assert.match(page, /Finish a challenge to unlock the next one/);

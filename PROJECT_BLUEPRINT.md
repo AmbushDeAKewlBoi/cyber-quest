@@ -40,11 +40,18 @@ One hour before the school science fair, the Robot Club’s helper robot Bolt di
 7. **The Look-Alike Link** — compare full domains and choose the real club site.
 8. **Permission Patrol** — apply least privilege to a badge-scanner app.
 9. **Wi-Fi Impostor** — match a secured network with a trusted source.
-10. **Photo Footprints** — remove precise GPS metadata before sharing.
-11. **Shifted Schedule** — decode a simple Caesar-shift message.
-12. **Science Fair Shield** — choose a layered launch-security plan.
+10. **Login Log Hunt** — group access events and identify repeated failed logins.
+11. **File Fingerprint** — compare SHA-256 fingerprints and find a changed download.
+12. **Junior SOC Shift** — combine evidence and choose an incident-response playbook.
 
-Total level score: 1,810 points.
+Total level score: 1,850 points.
+
+Difficulty rises in four guided stages:
+
+1. **Foundation (1–3)** — observe clues and recognize common risks.
+2. **Defender (4–6)** — make safe account, terminal, and recovery decisions.
+3. **Investigator (7–9)** — compare technical details across URLs, permissions, and networks.
+4. **Junior Analyst (10–12)** — interpret logs, verify file integrity, and respond to a combined incident.
 
 ## Design system
 

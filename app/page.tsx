@@ -1,6 +1,6 @@
 "use client";
 
-import { type CSSProperties, FormEvent, useMemo, useState } from "react";
+import { type CSSProperties, FormEvent, useMemo, useRef, useState } from "react";
 
 type View = "levels" | "challenge-grid" | "challenge";
 type Panel = "briefing" | "manual" | "hint";
@@ -177,54 +177,54 @@ const challenges: Challenge[] = [
   },
   {
     id: 10,
-    title: "Photo Footprints",
-    subtitle: "Remove hidden location data",
-    points: 160,
-    skill: "Metadata privacy",
-    tool: "Photo share",
-    objective: "Share the Bolt photo without revealing its exact location.",
+    title: "Login Log Hunt",
+    subtitle: "Find the repeated intruder",
+    points: 180,
+    skill: "Log analysis",
+    tool: "Access logs",
+    objective: "Find the IP address responsible for repeated failed logins.",
     briefing:
-      "The team wants to post a victory photo. Its hidden details include where and when the picture was taken.",
-    hint: "Keep the photo, but remove the exact GPS location before posting it publicly.",
-    manualTitle: "Photo metadata",
+      "The club account is receiving login attempts. Read the access log and identify the address that failed several times in one minute.",
+    hint: "Look for one IP address that appears again and again with the red FAILED result.",
+    manualTitle: "Reading access logs",
     manual:
-      "Photos can store device, time, and GPS details. Review or remove location metadata before sharing an image publicly.",
-    answer: "remove-location",
-    placeholder: "Choose a privacy-safe share option",
+      "Security logs record events such as time, username, IP address, and result. Repeated failures from one source can be a sign of password guessing.",
+    answer: "203.0.113.42",
+    placeholder: "Select the suspicious IP address",
   },
   {
     id: 11,
-    title: "Shifted Schedule",
-    subtitle: "Decode the final meetup",
-    points: 180,
-    skill: "Simple ciphers",
-    tool: "Decoder",
-    objective: "Shift each letter back five places and enter the message.",
+    title: "File Fingerprint",
+    subtitle: "Catch the changed download",
+    points: 200,
+    skill: "File integrity",
+    tool: "Hash checker",
+    objective: "Compare the hashes and identify the file that was changed.",
     briefing:
-      "Riley protected the final setup time with a simple letter shift. Decode it so the club arrives before the doors open.",
-    hint: "R becomes M, J becomes E, and Y becomes T. Keep the spaces in the message.",
-    manualTitle: "Caesar shifts",
+      "The real school updater publishes a fingerprint for every approved file. One downloaded file has a different fingerprint.",
+    hint: "Match each downloaded SHA-256 ending with its approved value. One pair is different.",
+    manualTitle: "Hashes as fingerprints",
     manual:
-      "A Caesar shift moves every letter by the same number of places. It is useful for puzzles, but it is not secure encryption.",
-    answer: "MEET AT NOON",
-    placeholder: "Enter the decoded message",
+      "A cryptographic hash is a file fingerprint. If even a tiny part of a file changes, its hash should change too. Matching hashes help verify integrity.",
+    answer: "bolt_update.zip",
+    placeholder: "Select the changed file",
   },
   {
     id: 12,
-    title: "Science Fair Shield",
-    subtitle: "Lock down the launch",
+    title: "Junior SOC Shift",
+    subtitle: "Respond to the launch alert",
     points: 220,
-    skill: "Security planning",
-    tool: "Launch checklist",
-    objective: "Choose the complete plan that keeps the fair launch safe.",
+    skill: "Incident response",
+    tool: "Security console",
+    objective: "Choose the response that contains the threat and safely restores launch.",
     briefing:
-      "The doors open in minutes. Use everything you learned to finish Bolt’s security checklist and launch the science fair safely.",
-    hint: "Verify the real updater, install approved updates, back up the project, and lock unattended devices.",
-    manualTitle: "Defense in layers",
+      "You are the junior analyst on duty. The console combines the phishing alert, failed logins, and changed update file into one incident.",
+    hint: "Stop the risky activity, preserve evidence, reset access, use a verified file, and report what happened.",
+    manualTitle: "Incident response",
     manual:
-      "Good security uses several layers: trusted sources, current software, recoverable backups, strong account protection, and locked devices.",
-    answer: "verify-update-backup-lock",
-    placeholder: "Choose the complete launch plan",
+      "A simple response flow is: identify, contain, recover, and learn. Do not erase evidence or keep using a file that failed an integrity check.",
+    answer: "contain-reset-verify-report",
+    placeholder: "Choose the complete incident response",
   },
 ];
 
@@ -272,7 +272,7 @@ const confettiPieces = Array.from({ length: 36 }, (_, index) => ({
   rotation: `${180 + ((index * 83) % 420)}deg`,
 }));
 
-const choiceChallengeIds = new Set([3, 4, 6, 7, 8, 9, 10, 12]);
+const choiceChallengeIds = new Set([3, 4, 6, 7, 8, 9, 10, 11, 12]);
 
 const choiceLabels: Record<string, string> = {
   sender: "Sender address selected",
@@ -285,12 +285,15 @@ const choiceLabels: Record<string, string> = {
   "CQ-School-Secure": "CQ-School-Secure selected",
   "CQ_School_Free": "CQ_School_Free selected",
   "ScienceFair-Guest": "ScienceFair-Guest selected",
-  "remove-location": "Remove exact location selected",
-  "share-all-details": "Share all hidden details selected",
-  "blur-only": "Blur the background selected",
-  "verify-update-backup-lock": "Complete launch plan selected",
-  "skip-backup": "Fast launch plan selected",
-  "reuse-email-update": "Email attachment plan selected",
+  "198.51.100.18": "198.51.100.18 selected",
+  "192.0.2.15": "192.0.2.15 selected",
+  "203.0.113.42": "203.0.113.42 selected",
+  "slides.pdf": "slides.pdf selected",
+  "bolt_firmware.bin": "bolt_firmware.bin selected",
+  "bolt_update.zip": "bolt_update.zip selected",
+  "contain-reset-verify-report": "Full incident response selected",
+  "delete-and-ignore": "Delete and ignore selected",
+  "keep-testing": "Keep testing selected",
 };
 
 const challengeGraphicLabels = [
@@ -303,10 +306,24 @@ const challengeGraphicLabels = [
   "URL?",
   "ALLOW",
   "WI-FI",
-  "EXIF",
-  "A→F",
-  "SHIELD",
+  "LOG",
+  "HASH",
+  "SOC",
 ];
+
+function challengeRank(id: number) {
+  if (id <= 3) return "Foundation";
+  if (id <= 6) return "Defender";
+  if (id <= 9) return "Investigator";
+  return "Junior Analyst";
+}
+
+function challengeRankClass(id: number) {
+  if (id <= 3) return "foundation";
+  if (id <= 6) return "defender";
+  if (id <= 9) return "investigator";
+  return "analyst";
+}
 
 function Icon({ name }: { name: string }) {
   const symbols: Record<string, string> = {
@@ -327,6 +344,7 @@ function Icon({ name }: { name: string }) {
 }
 
 export default function Home() {
+  const celebrationKey = useRef(0);
   const [view, setView] = useState<View>("levels");
   const [activeChallengeId, setActiveChallengeId] = useState(1);
   const [completed, setCompleted] = useState<number[]>([]);
@@ -403,8 +421,9 @@ export default function Home() {
     if (!completed.includes(activeChallengeId)) {
       setCompleted((current) => [...current, activeChallengeId]);
     }
+    celebrationKey.current += 1;
     setCelebration({
-      key: Date.now(),
+      key: celebrationKey.current,
       challengeId: activeChallengeId,
       flag: activeChallenge.answer,
     });
@@ -659,6 +678,15 @@ export default function Home() {
                   Bolt disappeared one hour before the school science fair. Follow twelve clues
                   to find the robot, secure the club account, and protect the launch.
                 </p>
+                <div className="rank-track" aria-label="Challenge skill progression">
+                  <span>Foundation</span>
+                  <i>→</i>
+                  <span>Defender</span>
+                  <i>→</i>
+                  <span>Investigator</span>
+                  <i>→</i>
+                  <span>Junior Analyst</span>
+                </div>
               </div>
               <div className="level-score">
                 <span>{completed.length} / {challenges.length} complete</span>
@@ -713,7 +741,12 @@ export default function Home() {
                     )}
                   </div>
                   <div className="challenge-card-copy">
-                    <span>{challenge.skill}</span>
+                    <div className="challenge-labels">
+                      <span>{challenge.skill}</span>
+                      <em className={`rank-${challengeRankClass(challenge.id)}`}>
+                        {challengeRank(challenge.id)}
+                      </em>
+                    </div>
                     <h3>{challenge.title}</h3>
                     <p>{challenge.subtitle}</p>
                     <strong>{done ? "Replay challenge" : isReady ? "Start challenge" : "Locked"}</strong>
@@ -736,7 +769,8 @@ export default function Home() {
               <div>
                 <h1>{activeChallenge.title}</h1>
                 <p>
-                  L1 C{String(activeChallenge.id).padStart(2, "0")} · {activeChallenge.tool}
+                  L1 C{String(activeChallenge.id).padStart(2, "0")} · {activeChallenge.tool} ·{" "}
+                  {challengeRank(activeChallenge.id)}
                 </p>
               </div>
             </div>
@@ -852,7 +886,10 @@ export default function Home() {
           <div className="challenge-main">
             <div className="challenge-stage-heading">
               <div>
-                <span>CHALLENGE {activeChallenge.id} OF {challenges.length}</span>
+                <span>
+                  CHALLENGE {activeChallenge.id} OF {challenges.length} ·{" "}
+                  {challengeRank(activeChallenge.id)}
+                </span>
                 <h2>{activeChallenge.objective}</h2>
               </div>
               <button onClick={() => setView("challenge-grid")}>View all challenges</button>
@@ -1259,172 +1296,238 @@ export default function Home() {
             )}
 
             {activeChallengeId === 10 && (
-              <div className="photo-stage metadata-challenge">
-                <div className="photo-preview">
-                  <div className="photo-sky" />
-                  <div className="photo-floor" />
-                  <div className="photo-bolt">
-                    <i />
-                    <i />
-                    <span />
+              <div className="log-stage analyst-challenge">
+                <div className="analyst-window">
+                  <div className="analyst-titlebar">
+                    <span>
+                      <i />
+                      <i />
+                      <i />
+                    </span>
+                    ACCESS.LOG · ROBOT CLUB AUTH
+                    <strong>LIVE</strong>
                   </div>
-                  <strong>BOLT IS BACK!</strong>
-                </div>
-                <div className="metadata-panel">
-                  <small>PUBLIC POST PREVIEW</small>
-                  <h3>Review hidden photo details</h3>
-                  <div className="metadata-list">
+                  <div className="log-summary">
+                    <div>
+                      <small>LAST 5 MINUTES</small>
+                      <strong>8 login events</strong>
+                    </div>
                     <span>
-                      <i>DEVICE</i>
-                      Club Tablet 4
+                      <i>5</i>
+                      failed
                     </span>
                     <span>
-                      <i>TAKEN</i>
-                      Today · 9:48 AM
-                    </span>
-                    <span className="sensitive">
-                      <i>GPS</i>
-                      39.9517, -75.1912 · Science Lab entrance
+                      <i>3</i>
+                      successful
                     </span>
                   </div>
-                  <div className="metadata-options">
+                  <div className="log-columns" aria-hidden="true">
+                    <span>IP ADDRESS</span>
+                    <span>EVENTS</span>
+                    <span>RESULT</span>
+                  </div>
+                  <div className="ip-groups">
                     {[
                       {
-                        value: "share-all-details",
-                        title: "Post with all details",
-                        copy: "Keep the device, time, and exact GPS location.",
+                        value: "198.51.100.18",
+                        events: ["09:51:02 · riley · SUCCESS", "09:53:14 · riley · SUCCESS"],
+                        result: "2 normal",
+                        status: "normal",
                       },
                       {
-                        value: "blur-only",
-                        title: "Blur the background",
-                        copy: "Change the picture but keep its hidden GPS details.",
+                        value: "203.0.113.42",
+                        events: [
+                          "09:52:01 · robot-club · FAILED",
+                          "09:52:14 · robot-club · FAILED",
+                          "09:52:28 · robot-club · FAILED",
+                          "09:52:47 · robot-club · FAILED",
+                        ],
+                        result: "4 failed",
+                        status: "alert",
                       },
                       {
-                        value: "remove-location",
-                        title: "Remove exact location",
-                        copy: "Keep the photo, but strip its GPS details before posting.",
+                        value: "192.0.2.15",
+                        events: ["09:54:03 · teacher · FAILED", "09:54:22 · teacher · SUCCESS"],
+                        result: "1 retry",
+                        status: "review",
                       },
-                    ].map((option) => (
+                    ].map((group) => (
                       <button
-                        key={option.value}
-                        className={selectedOption === option.value ? "selected" : ""}
-                        onClick={() => chooseAnswer(option.value, setSelectedOption)}
+                        key={group.value}
+                        className={`${group.status} ${selectedOption === group.value ? "selected" : ""}`}
+                        onClick={() => chooseAnswer(group.value, setSelectedOption)}
                       >
-                        <i>{selectedOption === option.value ? "✓" : ""}</i>
+                        <code>{group.value}</code>
                         <span>
-                          <strong>{option.title}</strong>
-                          <small>{option.copy}</small>
+                          {group.events.map((event) => (
+                            <small key={event}>{event}</small>
+                          ))}
                         </span>
+                        <em>{group.result}</em>
                       </button>
                     ))}
+                  </div>
+                  <div className="analyst-note">
+                    <strong>Analyst tip:</strong> Group events by IP, then look for repetition and
+                    unusual results.
                   </div>
                 </div>
               </div>
             )}
 
             {activeChallengeId === 11 && (
-              <div className="decoder-stage cipher-challenge">
-                <div className="decoder-header">
-                  <span>ROT</span>
-                  <div>
-                    <small>RILEY’S SHIFT DECODER</small>
-                    <h3>Move every letter back 5 places</h3>
+              <div className="hash-stage analyst-challenge">
+                <div className="hash-window">
+                  <div className="hash-heading">
+                    <span>#</span>
+                    <div>
+                      <small>SHA-256 INTEGRITY CHECK</small>
+                      <h3>Compare approved and downloaded fingerprints</h3>
+                      <p>Matching pair = unchanged · Different pair = investigate</p>
+                    </div>
+                  </div>
+                  <div className="hash-legend">
+                    <span>FILE</span>
+                    <span>APPROVED HASH</span>
+                    <span>DOWNLOADED HASH</span>
+                  </div>
+                  <div className="hash-files">
+                    {[
+                      {
+                        value: "slides.pdf",
+                        approved: "91A7…2C10",
+                        downloaded: "91A7…2C10",
+                      },
+                      {
+                        value: "bolt_firmware.bin",
+                        approved: "4D22…8E9B",
+                        downloaded: "4D22…8E9B",
+                      },
+                      {
+                        value: "bolt_update.zip",
+                        approved: "B731…0FA2",
+                        downloaded: "B731…9C44",
+                      },
+                    ].map((file) => (
+                      <button
+                        key={file.value}
+                        className={selectedOption === file.value ? "selected" : ""}
+                        onClick={() => chooseAnswer(file.value, setSelectedOption)}
+                      >
+                        <span>
+                          <i>FILE</i>
+                          <strong>{file.value}</strong>
+                        </span>
+                        <code>
+                          <i>APPROVED</i>
+                          {file.approved}
+                        </code>
+                        <code className={file.approved === file.downloaded ? "match" : "mismatch"}>
+                          <i>DOWNLOADED</i>
+                          {file.downloaded}
+                        </code>
+                      </button>
+                    ))}
+                  </div>
+                  <div className="hash-explainer">
+                    A hash is much longer in real life. This training screen shows the beginning
+                    and end so it is easier to compare.
                   </div>
                 </div>
-                <div className="cipher-message">RJJY FY STTS</div>
-                <div className="shift-example">
-                  <span>
-                    <i>ENCRYPTED</i>
-                    F G H I J K L M N O P Q R S T U V W X Y Z A B C D E
-                  </span>
-                  <span>
-                    <i>ORIGINAL</i>
-                    A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
-                  </span>
-                </div>
-                <div className="decoder-clues">
-                  <span>
-                    <strong>R → M</strong>
-                    move back five
-                  </span>
-                  <span>
-                    <strong>J → E</strong>
-                    repeat letters
-                  </span>
-                  <span>
-                    <strong>Y → T</strong>
-                    preserve spaces
-                  </span>
-                </div>
-                <p>Enter the full decoded message in the answer box.</p>
               </div>
             )}
 
             {activeChallengeId === 12 && (
-              <div className="launch-stage final-challenge">
-                <div className="launch-heading">
-                  <div className="launch-badge">CQ</div>
-                  <div>
-                    <small>SCIENCE FAIR · FINAL READINESS CHECK</small>
-                    <h3>Choose Bolt’s launch plan</h3>
-                    <p>One plan protects the project before, during, and after launch.</p>
-                  </div>
-                  <span className="launch-time">T− 08:00</span>
-                </div>
-                <div className="launch-options">
-                  {[
-                    {
-                      value: "reuse-email-update",
-                      title: "Use the fastest update",
-                      steps: [
-                        "Open the update from the email",
-                        "Reuse the club password",
-                        "Leave tablets unlocked",
-                      ],
-                    },
-                    {
-                      value: "skip-backup",
-                      title: "Launch now, protect later",
-                      steps: [
-                        "Skip the backup to save time",
-                        "Join any available Wi-Fi",
-                        "Update after the fair",
-                      ],
-                    },
-                    {
-                      value: "verify-update-backup-lock",
-                      title: "Verify, update, back up, lock",
-                      steps: [
-                        "Use the real school updater",
-                        "Back up the Bolt project",
-                        "Lock unattended devices",
-                      ],
-                    },
-                  ].map((option) => (
-                    <button
-                      key={option.value}
-                      className={selectedOption === option.value ? "selected" : ""}
-                      onClick={() => chooseAnswer(option.value, setSelectedOption)}
-                    >
-                      <span className="plan-number">0{option.value === "reuse-email-update" ? 1 : option.value === "skip-backup" ? 2 : 3}</span>
-                      <strong>{option.title}</strong>
-                      <ul>
-                        {option.steps.map((step) => (
-                          <li key={step}>{step}</li>
-                        ))}
-                      </ul>
-                    </button>
-                  ))}
-                </div>
-                {levelComplete && (
-                  <div className="final-complete-banner">
-                    <Icon name="star" />
+              <div className="soc-stage final-challenge">
+                <div className="soc-console">
+                  <div className="launch-heading">
+                    <div className="launch-badge">SOC</div>
                     <div>
-                      <strong>Level 1 complete · 12 / 12</strong>
-                      <span>Bolt is online, the club is protected, and the fair can begin.</span>
+                      <small>INCIDENT CQ-012 · ACTIVE</small>
+                      <h3>Science Fair launch alert</h3>
+                      <p>Review the evidence, then choose the safest response.</p>
                     </div>
+                    <span className="launch-time">SEVERITY · MEDIUM</span>
                   </div>
-                )}
+                  <div className="evidence-strip">
+                    <article>
+                      <span>01</span>
+                      <div>
+                        <small>EMAIL GATEWAY</small>
+                        <strong>Look-alike sender blocked</strong>
+                      </div>
+                    </article>
+                    <article>
+                      <span>02</span>
+                      <div>
+                        <small>AUTH LOG</small>
+                        <strong>4 failed logins · same IP</strong>
+                      </div>
+                    </article>
+                    <article>
+                      <span>03</span>
+                      <div>
+                        <small>FILE CHECK</small>
+                        <strong>Update hash mismatch</strong>
+                      </div>
+                    </article>
+                  </div>
+                  <div className="response-label">CHOOSE YOUR RESPONSE PLAYBOOK</div>
+                  <div className="launch-options">
+                    {[
+                      {
+                        value: "delete-and-ignore",
+                        title: "Delete and ignore",
+                        steps: [
+                          "Erase the alert and logs",
+                          "Keep the current password",
+                          "Launch with the changed file",
+                        ],
+                      },
+                      {
+                        value: "keep-testing",
+                        title: "Keep testing live",
+                        steps: [
+                          "Leave the account online",
+                          "Try the changed update",
+                          "Tell the teacher after launch",
+                        ],
+                      },
+                      {
+                        value: "contain-reset-verify-report",
+                        title: "Contain, reset, verify, report",
+                        steps: [
+                          "Pause login and save the logs",
+                          "Reset access and use verified files",
+                          "Report, recover, and document",
+                        ],
+                      },
+                    ].map((option, index) => (
+                      <button
+                        key={option.value}
+                        className={selectedOption === option.value ? "selected" : ""}
+                        onClick={() => chooseAnswer(option.value, setSelectedOption)}
+                      >
+                        <span className="plan-number">0{index + 1}</span>
+                        <strong>{option.title}</strong>
+                        <ul>
+                          {option.steps.map((step) => (
+                            <li key={step}>{step}</li>
+                          ))}
+                        </ul>
+                      </button>
+                    ))}
+                  </div>
+                  {levelComplete && (
+                    <div className="final-complete-banner">
+                      <Icon name="star" />
+                      <div>
+                        <strong>Level 1 complete · Junior Analyst earned</strong>
+                        <span>Bolt is online, the incident is contained, and the fair can begin.</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>

@@ -13,9 +13,9 @@ progressive challenges:
 - a simulated command-line terminal
 - safe incident response and account recovery
 - suspicious URLs and app permissions
-- trusted Wi-Fi and photo metadata
-- simple cipher decoding
-- layered security planning
+- trusted Wi-Fi and access-log analysis
+- file-integrity hash comparison
+- guided incident response
 
 ## Run locally
 
