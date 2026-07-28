@@ -1,642 +1,900 @@
 "use client";
 
-import { FormEvent, useMemo, useRef, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 
-type ChallengeStep = "briefing" | "inspect" | "terminal" | "complete";
+type View = "levels" | "challenge-grid" | "challenge";
+type Panel = "briefing" | "manual" | "hint";
 
-const clues = [
+type Challenge = {
+  id: number;
+  title: string;
+  subtitle: string;
+  points: number;
+  skill: string;
+  tool: string;
+  objective: string;
+  briefing: string;
+  hint: string;
+  manualTitle: string;
+  manual: string;
+  answer: string;
+  placeholder: string;
+};
+
+const challenges: Challenge[] = [
   {
-    id: "sender",
-    label: "Odd sender",
-    detail: "The address says beacon-pr1zes, not Beacon Bay.",
+    id: 1,
+    title: "Hidden in Plain Sight",
+    subtitle: "Find the club contact",
+    points: 100,
+    skill: "Hidden text",
+    tool: "Website",
+    objective: "Find the hidden email address on Riley's profile.",
+    briefing:
+      "Bolt, the school robot, vanished from the network before the science fair. Riley left a contact address on this page, but it is hidden.",
+    hint: "Drag your mouse across the blank-looking sentence under “Robot Club.”",
+    manualTitle: "Hidden text",
+    manual:
+      "A webpage can contain text that blends into its background. Selecting the page reveals the letters without changing the page.",
+    answer: "riley@robotclub.school",
+    placeholder: "Enter the hidden email",
   },
   {
-    id: "rush",
-    label: "Pressure words",
-    detail: "“RIGHT NOW” tries to rush you before you can think.",
+    id: 2,
+    title: "Mixed-Up Message",
+    subtitle: "Read the backwards note",
+    points: 100,
+    skill: "Text patterns",
+    tool: "Message board",
+    objective: "Reverse the message and enter the room code.",
+    briefing:
+      "Riley sent a quick update before Bolt disappeared. The post looks scrambled, but the letters follow a simple pattern.",
+    hint: "Read the message from the final character back to the first. The code is the last word after reversing it.",
+    manualTitle: "Reversing text",
+    manual:
+      "Reversing is not encryption. It simply changes the order of characters. Start at the end and work toward the beginning.",
+    answer: "LAB3",
+    placeholder: "Enter the room code",
   },
   {
-    id: "link",
-    label: "Tricky link",
-    detail: "The display text and the real destination do not match.",
+    id: 3,
+    title: "The Fake Update",
+    subtitle: "Spot the suspicious sender",
+    points: 120,
+    skill: "Phishing",
+    tool: "Email",
+    objective: "Click the part of the email that proves it is fake.",
+    briefing:
+      "A message claims Bolt needs an emergency update. One detail shows the message did not come from the school.",
+    hint: "Compare the sender's address with the real school address shown in the email footer.",
+    manualTitle: "Look-alike domains",
+    manual:
+      "Scammers change one letter in a trusted address. Read the full domain slowly before opening a link or attachment.",
+    answer: "sender",
+    placeholder: "Select the suspicious detail",
   },
   {
-    id: "secret",
-    label: "Asks for a secret",
-    detail: "Real helpers never ask you to send a password.",
+    id: 4,
+    title: "Password Pitfall",
+    subtitle: "Choose the safer password",
+    points: 120,
+    skill: "Password safety",
+    tool: "Security check",
+    objective: "Choose the strongest password for the Robot Club account.",
+    briefing:
+      "The fake update tried to guess the club password. Pick the option that is long, unique, and does not use club information.",
+    hint: "The strongest choice is the long phrase made from unrelated words and symbols.",
+    manualTitle: "Strong passwords",
+    manual:
+      "Long and unique passwords are harder to guess. Avoid names, birthdays, teams, pets, and passwords reused on other accounts.",
+    answer: "orbit-cactus-lantern-47!",
+    placeholder: "Choose a password",
+  },
+  {
+    id: 5,
+    title: "Terminal Trail",
+    subtitle: "Read Bolt's last log",
+    points: 150,
+    skill: "Command line",
+    tool: "Terminal",
+    objective: "Use the terminal to find Bolt's last known location.",
+    briefing:
+      "Bolt's safe training terminal contains one log file. List the files, open the log, and enter the location as your answer.",
+    hint: "Type “ls” to list files. Then type “cat bolt.txt” to read the log.",
+    manualTitle: "Two terminal commands",
+    manual:
+      "The “ls” command lists files. The “cat filename” command prints a text file. These commands only run in this training window.",
+    answer: "charging-station-4",
+    placeholder: "Enter Bolt's location",
+  },
+  {
+    id: 6,
+    title: "Bring Bolt Home",
+    subtitle: "Make the safe response",
+    points: 200,
+    skill: "Safe response",
+    tool: "Control center",
+    objective: "Choose the safe steps that bring Bolt back online.",
+    briefing:
+      "You found Bolt at Charging Station 4. Finish the case by choosing the response that protects the club account and restores Bolt safely.",
+    hint: "Report the fake message, change the password, turn on MFA, and use the real school update system.",
+    manualTitle: "Respond and recover",
+    manual:
+      "When an account may be at risk: stop, report the message, change the password through the real service, enable MFA, and ask a trusted adult or teacher.",
+    answer: "report-reset-mfa-update",
+    placeholder: "Choose the safe response",
   },
 ];
 
-const missions = [
-  { number: "01", title: "The Phantom Prize", skill: "Spot a phish", state: "active" },
-  { number: "02", title: "Passphrase Forge", skill: "Build strong passwords", state: "next" },
-  { number: "03", title: "Two Keys at Twilight", skill: "Use MFA", state: "locked" },
-  { number: "04", title: "The Update Express", skill: "Update safely", state: "locked" },
+const levelCards = [
+  {
+    id: 1,
+    title: "Signal Lost",
+    description: "Find Bolt before the science fair begins.",
+    meta: "6 challenges · Beginner",
+    unlocked: true,
+    theme: "lab",
+  },
+  {
+    id: 2,
+    title: "The Copycat Account",
+    description: "Track a fake profile across the school network.",
+    meta: "Coming next · Beginner",
+    unlocked: false,
+    theme: "social",
+  },
+  {
+    id: 3,
+    title: "Library Lockout",
+    description: "Recover the library system without losing its files.",
+    meta: "Locked · Intermediate",
+    unlocked: false,
+    theme: "library",
+  },
+  {
+    id: 4,
+    title: "Festival Firewall",
+    description: "Protect the science fair livestream.",
+    meta: "Locked · Intermediate",
+    unlocked: false,
+    theme: "festival",
+  },
 ];
+
+function Icon({ name }: { name: string }) {
+  const symbols: Record<string, string> = {
+    website: "▣",
+    message: "≡",
+    email: "@",
+    password: "●",
+    terminal: ">_",
+    control: "✓",
+    lock: "⌁",
+    check: "✓",
+    star: "★",
+    book: "▤",
+    hint: "?",
+    brief: "i",
+  };
+  return <span aria-hidden="true">{symbols[name] ?? "•"}</span>;
+}
 
 export default function Home() {
-  const [challengeOpen, setChallengeOpen] = useState(false);
-  const [step, setStep] = useState<ChallengeStep>("briefing");
-  const [foundClues, setFoundClues] = useState<string[]>([]);
-  const [hintOpen, setHintOpen] = useState(false);
-  const [guideOpen, setGuideOpen] = useState(false);
-  const [soundOn, setSoundOn] = useState(true);
-  const [command, setCommand] = useState("");
+  const [view, setView] = useState<View>("levels");
+  const [activeChallengeId, setActiveChallengeId] = useState(1);
+  const [completed, setCompleted] = useState<number[]>([]);
+  const [panel, setPanel] = useState<Panel>("briefing");
+  const [answer, setAnswer] = useState("");
+  const [feedback, setFeedback] = useState("");
+  const [selectedPart, setSelectedPart] = useState("");
+  const [selectedPassword, setSelectedPassword] = useState("");
+  const [selectedRecovery, setSelectedRecovery] = useState("");
+  const [hiddenRevealed, setHiddenRevealed] = useState(false);
+  const [terminalInput, setTerminalInput] = useState("");
   const [terminalLines, setTerminalLines] = useState([
-    "Signal Shell v1.0 — training sandbox",
-    "Type help to see safe commands.",
+    "Cyber Quest training terminal",
+    "Type help if you need the available commands.",
   ]);
-  const [scanned, setScanned] = useState(false);
-  const blueprintRef = useRef<HTMLElement>(null);
 
-  const clueCount = foundClues.length;
-  const missionProgress = useMemo(() => {
-    if (step === "complete") return 100;
-    if (step === "terminal") return 72;
-    if (step === "inspect") return 28 + clueCount * 9;
-    return 12;
-  }, [step, clueCount]);
+  const activeChallenge = challenges.find((item) => item.id === activeChallengeId)!;
+  const activeIndex = challenges.findIndex((item) => item.id === activeChallengeId);
+  const totalPoints = completed.reduce(
+    (sum, id) => sum + (challenges.find((item) => item.id === id)?.points ?? 0),
+    0,
+  );
+  const levelComplete = completed.length === challenges.length;
+  const progressPercent = Math.round((completed.length / challenges.length) * 100);
 
-  function openChallenge() {
-    setChallengeOpen(true);
-    setStep("briefing");
-    setFoundClues([]);
-    setHintOpen(false);
-    setCommand("");
-    setScanned(false);
-    setTerminalLines([
-      "Signal Shell v1.0 — training sandbox",
-      "Type help to see safe commands.",
-    ]);
+  const nextUnlockedId = useMemo(() => {
+    const firstIncomplete = challenges.find((challenge, index) => {
+      if (completed.includes(challenge.id)) return false;
+      return index === 0 || completed.includes(challenges[index - 1].id);
+    });
+    return firstIncomplete?.id ?? challenges.length;
+  }, [completed]);
+
+  function isUnlocked(id: number) {
+    return id === 1 || completed.includes(id - 1);
   }
 
-  function toggleClue(id: string) {
-    setFoundClues((current) =>
-      current.includes(id) ? current.filter((clue) => clue !== id) : [...current, id],
+  function openLevel() {
+    setView("challenge-grid");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function openChallenge(id: number) {
+    if (!isUnlocked(id)) return;
+    setActiveChallengeId(id);
+    setPanel("briefing");
+    setAnswer("");
+    setFeedback("");
+    setSelectedPart("");
+    setSelectedPassword("");
+    setSelectedRecovery("");
+    setHiddenRevealed(false);
+    setTerminalInput("");
+    setTerminalLines([
+      "Cyber Quest training terminal",
+      "Type help if you need the available commands.",
+    ]);
+    setView("challenge");
+    window.scrollTo({ top: 0 });
+  }
+
+  function markComplete() {
+    if (!completed.includes(activeChallengeId)) {
+      setCompleted((current) => [...current, activeChallengeId]);
+    }
+    setFeedback(
+      activeChallengeId === challenges.length
+        ? "Level complete! Bolt is back online."
+        : `Correct! Challenge ${activeChallengeId + 1} is now unlocked.`,
     );
   }
 
-  function runCommand(event: FormEvent<HTMLFormElement>) {
+  function submitAnswer(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const value = command.trim().toLowerCase();
-    if (!value) return;
+    const submitted =
+      activeChallengeId === 3
+        ? selectedPart
+        : activeChallengeId === 4
+          ? selectedPassword
+          : activeChallengeId === 6
+            ? selectedRecovery
+            : answer.trim();
 
-    let response = "Command not found. Type help.";
-    if (value === "help") {
-      response = "Commands: scan message.eml · inspect link · report · clear";
-    } else if (value === "scan message.eml") {
-      response =
-        "SCAN: 4 warning signs found — look-alike sender, urgency, hidden link, password request.";
-      setScanned(true);
-    } else if (value === "inspect link") {
-      response =
-        "LINK: beacon-bay-gifts.example → not an official beaconbay.school address. Do not open it.";
-    } else if (value === "report") {
-      if (scanned) {
-        setTerminalLines((lines) => [...lines, `scout@signal:~$ ${command}`, "REPORT SENT: Pip is safe!"]);
-        setCommand("");
-        window.setTimeout(() => setStep("complete"), 350);
-        return;
-      }
-      response = "Scan the message first so your report includes evidence.";
-    } else if (value === "clear") {
-      setTerminalLines(["Signal Shell cleared. Type help for commands."]);
-      setCommand("");
+    if (submitted.toLowerCase() === activeChallenge.answer.toLowerCase()) {
+      markComplete();
       return;
     }
 
-    setTerminalLines((lines) => [...lines, `scout@signal:~$ ${command}`, response]);
-    setCommand("");
+    setFeedback(
+      activeChallengeId === 3 || activeChallengeId === 4 || activeChallengeId === 6
+        ? "Not quite. Check the objective and try another choice."
+        : "That answer does not match yet. Check the challenge or open a hint.",
+    );
   }
 
+  function goToAdjacent(direction: -1 | 1) {
+    const target = activeIndex + direction;
+    if (target < 0 || target >= challenges.length) return;
+    if (!isUnlocked(challenges[target].id)) return;
+    openChallenge(challenges[target].id);
+  }
+
+  function runTerminal(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const command = terminalInput.trim().toLowerCase();
+    if (!command) return;
+
+    let response = "Command not found. Type help.";
+    if (command === "help") {
+      response = "Available commands: ls · cat bolt.txt · clear";
+    } else if (command === "ls") {
+      response = "bolt.txt   readme.txt";
+    } else if (command === "cat bolt.txt") {
+      response =
+        "LAST SIGNAL: charging-station-4\nSTATUS: safe, offline\nNEXT STEP: report the fake update";
+    } else if (command === "cat readme.txt") {
+      response = "Training files only. Try reading bolt.txt.";
+    } else if (command === "clear") {
+      setTerminalLines(["Terminal cleared. Type help for commands."]);
+      setTerminalInput("");
+      return;
+    }
+
+    setTerminalLines((lines) => [...lines, `quest@lab:~$ ${terminalInput}`, response]);
+    setTerminalInput("");
+  }
+
+  const panelCopy =
+    panel === "briefing"
+      ? activeChallenge.briefing
+      : panel === "manual"
+        ? activeChallenge.manual
+        : activeChallenge.hint;
+
   return (
-    <main>
-      <a className="skip-link" href="#mission-map">
-        Skip to mission map
+    <main className="cq-app">
+      <a className="skip-link" href="#main-content">
+        Skip to main content
       </a>
 
-      <header className="topbar">
-        <button className="brand" aria-label="Cipher Scouts home">
-          <span className="brand-mark" aria-hidden="true">
-            C
-          </span>
-          <span>
-            <strong>CIPHER SCOUTS</strong>
-            <small>BEACON BAY DIVISION</small>
-          </span>
-        </button>
-
-        <nav aria-label="Primary">
-          <a className="nav-active" href="#mission-map">
-            Mission map
-          </a>
-          <button onClick={() => setGuideOpen(true)}>Field guide</button>
-          <button onClick={() => blueprintRef.current?.scrollIntoView({ behavior: "smooth" })}>
-            Project blueprint
-          </button>
-        </nav>
-
-        <div className="top-actions">
+      {view !== "challenge" && (
+        <header className="cq-header">
           <button
-            className="icon-button"
-            onClick={() => setSoundOn((value) => !value)}
-            aria-label={soundOn ? "Turn sound off" : "Turn sound on"}
-            aria-pressed={soundOn}
+            className="cq-brand"
+            onClick={() => setView("levels")}
+            aria-label="Cyber Quest home"
           >
-            {soundOn ? "♪" : "×"}
-          </button>
-          <div className="agent-chip">
-            <span className="avatar" aria-hidden="true">
-              LS
-            </span>
+            <span className="cq-logo">CQ</span>
             <span>
-              <small>SCOUT</small>
-              <strong>Nova</strong>
+              <strong>CYBER QUEST</strong>
+              <small>LEARN. SOLVE. PROTECT.</small>
             </span>
-          </div>
-        </div>
-      </header>
+          </button>
 
-      <section className="game-shell" id="mission-map">
-        <aside className="story-rail" aria-label="Current story">
-          <p className="eyebrow">CASE FILE 01</p>
-          <h1>Something strange is humming beneath Beacon Bay.</h1>
-          <p>
-            The school festival opens tonight—but a fake prize message is bouncing through the
-            town network. Find its warning signs before Pip the robot mascot clicks.
-          </p>
+          <nav aria-label="Primary navigation">
+            <button
+              className={view === "levels" ? "active" : ""}
+              onClick={() => setView("levels")}
+            >
+              Levels
+            </button>
+            <button
+              className={view === "challenge-grid" ? "active" : ""}
+              onClick={openLevel}
+            >
+              Level 1
+            </button>
+          </nav>
 
-          <div className="briefing-note">
-            <span className="mentor-face" aria-hidden="true">
-              M
+          <div className="header-stats">
+            <span>
+              <Icon name="star" />
+              <strong>{totalPoints}</strong> points
             </span>
-            <div>
-              <strong>Mira, Signal Keeper</strong>
-              <p>“Great scouts slow down, look closely, and protect their crew.”</p>
-            </div>
+            <div className="profile-dot">N</div>
           </div>
-
-          <button className="primary-button" onClick={openChallenge}>
-            Start mission <span aria-hidden="true">→</span>
-          </button>
-          <p className="safe-note">Training sandbox · No real accounts or websites</p>
-        </aside>
-
-        <div className="map-stage" aria-label="Illustrated map of Beacon Bay">
-          <div className="map-sky">
-            <span className="cloud cloud-one" />
-            <span className="cloud cloud-two" />
-            <span className="signal-moon">⌁</span>
-          </div>
-          <div className="hill hill-back" />
-          <div className="hill hill-front" />
-          <div className="bay" />
-          <div className="building school">
-            <span>BEACON SCHOOL</span>
-            <i />
-          </div>
-          <div className="building library">
-            <span>BYTE LIBRARY</span>
-            <i />
-          </div>
-          <div className="lighthouse">
-            <i />
-            <span />
-          </div>
-          <button className="mission-pin active-pin" onClick={openChallenge}>
-            <span className="pin-pulse" />
-            <strong>01</strong>
-            <small>PHANTOM PRIZE</small>
-          </button>
-          <button className="mission-pin locked-pin" aria-label="Mission 2 locked">
-            <strong>02</strong>
-            <small>LOCKED</small>
-          </button>
-          <div className="map-label">BEACON BAY</div>
-          <div className="map-compass" aria-hidden="true">
-            N
-          </div>
-        </div>
-
-        <aside className="progress-rail" aria-label="Mission progress">
-          <div className="rank-card">
-            <div className="rank-top">
-              <span>RANK 01</span>
-              <strong>120 XP</strong>
-            </div>
-            <div className="rank-bar">
-              <span style={{ width: "36%" }} />
-            </div>
-            <small>80 XP to Trailblazer</small>
-          </div>
-
-          <div className="mission-list">
-            <div className="section-title">
-              <span>BEACON BAY</span>
-              <small>1 / 4</small>
-            </div>
-            {missions.map((mission) => (
-              <button
-                key={mission.number}
-                className={`mission-row ${mission.state}`}
-                onClick={mission.state === "active" ? openChallenge : undefined}
-                disabled={mission.state === "locked"}
-              >
-                <span className="mission-number">{mission.number}</span>
-                <span>
-                  <strong>{mission.title}</strong>
-                  <small>{mission.skill}</small>
-                </span>
-                <i aria-hidden="true">{mission.state === "locked" ? "•" : "›"}</i>
-              </button>
-            ))}
-          </div>
-
-          <div className="toolkit-card">
-            <div>
-              <span className="tool-icon" aria-hidden="true">
-                ?
-              </span>
-              <span>
-                <strong>Need a clue?</strong>
-                <small>The Field Guide teaches, never spoils.</small>
-              </span>
-            </div>
-            <button onClick={() => setGuideOpen(true)}>Open guide</button>
-          </div>
-        </aside>
-      </section>
-
-      <section className="blueprint" ref={blueprintRef} id="blueprint">
-        <div className="blueprint-heading">
-          <div>
-            <p className="eyebrow">PRODUCT VISION & PLAN</p>
-            <h2>A mystery series where digital safety becomes a superpower.</h2>
-          </div>
-          <p>
-            Cipher Scouts is designed for grades 4–8: story-first for younger learners,
-            authentic tools for older learners, and enough scaffolding for a first cyber
-            experience.
-          </p>
-        </div>
-
-        <div className="blueprint-grid">
-          <article className="vision-card">
-            <span className="card-index">01</span>
-            <h3>The promise</h3>
-            <p>
-              “I can recognize risky moments online, explain what makes them risky, and choose
-              a safer next step.”
-            </p>
-          </article>
-          <article className="vision-card">
-            <span className="card-index">02</span>
-            <h3>The play loop</h3>
-            <p>Story beat → investigate → try a tool → get feedback → explain the safe choice.</p>
-          </article>
-          <article className="vision-card">
-            <span className="card-index">03</span>
-            <h3>The first season</h3>
-            <p>
-              Phishing, passwords, MFA, software updates, privacy, kind communication, and
-              beginner command-line thinking.
-            </p>
-          </article>
-          <article className="vision-card">
-            <span className="card-index">04</span>
-            <h3>Success signal</h3>
-            <p>
-              Learners complete a mission, name the warning signs, and transfer the lesson to
-              a new scenario without a hint.
-            </p>
-          </article>
-        </div>
-
-        <div className="mvp-strip">
-          <div>
-            <p className="eyebrow">PLAYABLE MVP</p>
-            <h3>One world. Six missions. Three ways to learn.</h3>
-          </div>
-          <ul>
-            <li>
-              <strong>Mission map</strong>
-              <span>Visible progress and story choices</span>
-            </li>
-            <li>
-              <strong>Challenge engine</strong>
-              <span>Messages, websites, puzzles, and safe terminal tasks</span>
-            </li>
-            <li>
-              <strong>Field guide</strong>
-              <span>Concept cards, hints, and end-of-mission reflection</span>
-            </li>
-            <li>
-              <strong>Educator view</strong>
-              <span>Skill mastery, attempts, and where help was used</span>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <footer>
-        <strong>CIPHER SCOUTS</strong>
-        <span>Original educational game concept · Demo build</span>
-        <button onClick={openChallenge}>Replay mission 01</button>
-      </footer>
-
-      {guideOpen && (
-        <div className="modal-backdrop" role="presentation" onMouseDown={() => setGuideOpen(false)}>
-          <section
-            className="guide-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="guide-title"
-            onMouseDown={(event) => event.stopPropagation()}
-          >
-            <button className="close-button" onClick={() => setGuideOpen(false)} aria-label="Close">
-              ×
-            </button>
-            <p className="eyebrow">FIELD GUIDE · MESSAGE SAFETY</p>
-            <h2 id="guide-title">The four-second pause</h2>
-            <p className="guide-intro">
-              Before you tap a surprising message, pause and check four things.
-            </p>
-            <div className="guide-grid">
-              {[
-                ["1", "Who sent it?", "Look closely at the full address, not only the name."],
-                ["2", "How does it feel?", "Scams often use panic, pressure, or prizes."],
-                ["3", "Where does it go?", "A link can hide a different destination."],
-                ["4", "What does it ask?", "Passwords and codes should stay secret."],
-              ].map(([number, title, copy]) => (
-                <article key={number}>
-                  <span>{number}</span>
-                  <h3>{title}</h3>
-                  <p>{copy}</p>
-                </article>
-              ))}
-            </div>
-            <button className="primary-button" onClick={() => setGuideOpen(false)}>
-              Back to the case
-            </button>
-          </section>
-        </div>
+        </header>
       )}
 
-      {challengeOpen && (
-        <div className="challenge-layer" role="dialog" aria-modal="true" aria-label="Mission 01">
-          <header className="challenge-header">
-            <button
-              className="challenge-brand"
-              onClick={() => setChallengeOpen(false)}
-              aria-label="Exit mission"
-            >
-              <span>←</span> EXIT CASE
-            </button>
-            <div className="challenge-title">
-              <small>CASE 01</small>
-              <strong>THE PHANTOM PRIZE</strong>
+      {view === "levels" && (
+        <section className="levels-view" id="main-content">
+          <div className="page-heading">
+            <div>
+              <p className="kicker">CYBER QUEST ACADEMY</p>
+              <h1>Choose a level</h1>
+              <p>Start with Level 1. New levels unlock as you finish each story.</p>
             </div>
-            <div className="challenge-progress">
-              <span style={{ width: `${missionProgress}%` }} />
+            <div className="overall-progress">
+              <span>Overall progress</span>
+              <strong>{progressPercent}%</strong>
+              <div>
+                <i style={{ width: `${progressPercent}%` }} />
+              </div>
             </div>
-            <button className="guide-shortcut" onClick={() => setGuideOpen(true)}>
-              ? FIELD GUIDE
-            </button>
-          </header>
+          </div>
 
-          <div className={`challenge-content step-${step}`}>
-            {step === "briefing" && (
-              <section className="briefing-screen">
-                <div className="pip-portrait" aria-hidden="true">
-                  <div className="antenna" />
-                  <div className="robot-face">
+          <div className="level-grid">
+            {levelCards.map((level) => (
+              <article
+                className={`level-card ${level.unlocked ? "unlocked" : "locked"}`}
+                key={level.id}
+              >
+                <div className={`level-art ${level.theme}`}>
+                  <span className="room-floor" />
+                  <span className="room-desk" />
+                  <span className="room-screen">{level.id === 1 ? ">_" : "•"}</span>
+                  <span className="room-person">
                     <i />
-                    <i />
-                    <span />
-                  </div>
-                  <div className="robot-body">PIP</div>
+                  </span>
+                  <span className="room-prop" />
+                  {!level.unlocked && (
+                    <span className="large-lock">
+                      <Icon name="lock" />
+                    </span>
+                  )}
                 </div>
-                <div className="briefing-copy">
-                  <p className="eyebrow">INCOMING FROM MIRA</p>
-                  <h2>Pip got a message promising a rare festival badge.</h2>
-                  <p>
-                    It says the prize disappears in five minutes and asks for Pip’s password.
-                    Your mission: inspect the message, collect evidence, and report it safely.
-                  </p>
-                  <div className="objective-list">
-                    <span>
-                      <b>1</b> Find at least 3 warning signs
-                    </span>
-                    <span>
-                      <b>2</b> Scan the message in Signal Shell
-                    </span>
-                    <span>
-                      <b>3</b> Report it without opening the link
-                    </span>
+                <div className="level-card-body">
+                  <div className="level-number">LEVEL {level.id}</div>
+                  <div>
+                    <h2>{level.title}</h2>
+                    <p>{level.description}</p>
+                    <small>{level.meta}</small>
                   </div>
-                  <button className="primary-button" onClick={() => setStep("inspect")}>
-                    Open evidence
+                  <button disabled={!level.unlocked} onClick={openLevel}>
+                    {level.unlocked ? "Go to level" : "Locked"}
                   </button>
                 </div>
-              </section>
-            )}
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
 
-            {step === "inspect" && (
-              <section className="inspect-screen">
-                <div className="task-instructions">
-                  <p className="eyebrow">STEP 1 OF 2 · INSPECT</p>
-                  <h2>Tap the parts that feel suspicious.</h2>
-                  <p>Find at least three warning signs. You can change your choices.</p>
-                  <div className="clue-counter">
-                    <span>{clueCount} / 4 clues</span>
-                    <div>
-                      {[0, 1, 2, 3].map((item) => (
-                        <i key={item} className={clueCount > item ? "found" : ""} />
-                      ))}
+      {view === "challenge-grid" && (
+        <section className="challenge-grid-view" id="main-content">
+          <div className="level-banner">
+            <button className="back-link" onClick={() => setView("levels")}>
+              ← All levels
+            </button>
+            <div className="level-banner-copy">
+              <div>
+                <p className="kicker">LEVEL 1 · BEGINNER</p>
+                <h1>Signal Lost</h1>
+                <p>
+                  Bolt disappeared one hour before the school science fair. Follow six clues to
+                  find the robot and secure the club account.
+                </p>
+              </div>
+              <div className="level-score">
+                <span>{completed.length} / 6 complete</span>
+                <strong>{totalPoints} / 790 points</strong>
+                <div>
+                  <i style={{ width: `${progressPercent}%` }} />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="challenge-section-heading">
+            <div>
+              <h2>Challenges</h2>
+              <p>Finish a challenge to unlock the next one.</p>
+            </div>
+            <span className="story-status">
+              {levelComplete ? "Story complete" : `Challenge ${nextUnlockedId} is ready`}
+            </span>
+          </div>
+
+          <div className="challenge-card-grid">
+            {challenges.map((challenge, index) => {
+              const unlocked = isUnlocked(challenge.id);
+              const done = completed.includes(challenge.id);
+              const isReady = challenge.id === nextUnlockedId && !done;
+              return (
+                <button
+                  className={`challenge-card ${done ? "complete" : ""} ${isReady ? "ready" : ""}`}
+                  key={challenge.id}
+                  disabled={!unlocked}
+                  onClick={() => openChallenge(challenge.id)}
+                >
+                  <div className="challenge-card-top">
+                    <span className="challenge-index">
+                      {done ? <Icon name="check" /> : String(index + 1).padStart(2, "0")}
+                    </span>
+                    <span className="challenge-points">+{challenge.points} pts</span>
+                  </div>
+                  <div className={`challenge-graphic graphic-${challenge.id}`}>
+                    <div className="mini-window">
+                      <span />
+                      <span />
+                      <span />
+                      <strong>
+                        {challenge.id === 1
+                          ? "ABOUT"
+                          : challenge.id === 2
+                            ? "← TEXT"
+                            : challenge.id === 3
+                              ? "@ MAIL"
+                              : challenge.id === 4
+                                ? "••••"
+                                : challenge.id === 5
+                                  ? ">_"
+                                  : "✓ SAFE"}
+                      </strong>
                     </div>
+                    {!unlocked && (
+                      <div className="card-lock">
+                        <Icon name="lock" />
+                        <small>Finish challenge {challenge.id - 1}</small>
+                      </div>
+                    )}
                   </div>
-                  <button className="text-button" onClick={() => setHintOpen((value) => !value)}>
-                    {hintOpen ? "Hide hint" : "Give me a hint"}
-                  </button>
-                  {hintOpen && (
-                    <p className="hint-box">
-                      Read the sender one character at a time. Then notice how the message makes
-                      you feel.
-                    </p>
-                  )}
-                </div>
+                  <div className="challenge-card-copy">
+                    <span>{challenge.skill}</span>
+                    <h3>{challenge.title}</h3>
+                    <p>{challenge.subtitle}</p>
+                    <strong>{done ? "Replay challenge" : isReady ? "Start challenge" : "Locked"}</strong>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
-                <div className="message-card">
-                  <div className="message-toolbar">
-                    <span>New message</span>
-                    <i>•••</i>
-                  </div>
+      {view === "challenge" && (
+        <section className="challenge-workspace" id="main-content">
+          <aside className="challenge-sidebar">
+            <div className="sidebar-top">
+              <button className="round-back" onClick={() => setView("challenge-grid")}>
+                ←
+                <span className="sr-only">Back to challenge grid</span>
+              </button>
+              <div>
+                <h1>{activeChallenge.title}</h1>
+                <p>
+                  L1 C{String(activeChallenge.id).padStart(2, "0")} · {activeChallenge.tool}
+                </p>
+              </div>
+            </div>
+
+            <div className="points-row">
+              <span>Worth</span>
+              <strong>
+                <Icon name="star" /> {activeChallenge.points} points
+              </strong>
+            </div>
+
+            <div className="sidebar-tabs" role="tablist" aria-label="Challenge help">
+              <button
+                role="tab"
+                aria-selected={panel === "briefing"}
+                className={panel === "briefing" ? "active" : ""}
+                onClick={() => setPanel("briefing")}
+              >
+                <Icon name="brief" />
+                Briefing
+              </button>
+              <button
+                role="tab"
+                aria-selected={panel === "manual"}
+                className={panel === "manual" ? "active" : ""}
+                onClick={() => setPanel("manual")}
+              >
+                <Icon name="book" />
+                Field manual
+              </button>
+              <button
+                role="tab"
+                aria-selected={panel === "hint"}
+                className={panel === "hint" ? "active" : ""}
+                onClick={() => setPanel("hint")}
+              >
+                <Icon name="hint" />
+                Hint
+              </button>
+            </div>
+
+            <div className="sidebar-info" role="tabpanel">
+              <span>
+                {panel === "briefing"
+                  ? "Instructions"
+                  : panel === "manual"
+                    ? activeChallenge.manualTitle
+                    : "Hint"}
+              </span>
+              <p>{panelCopy}</p>
+              <div className="objective-box">
+                <strong>Your task</strong>
+                <p>{activeChallenge.objective}</p>
+              </div>
+            </div>
+
+            <form className="answer-form" onSubmit={submitAnswer}>
+              <label htmlFor="challenge-answer">
+                {activeChallengeId === 3 || activeChallengeId === 4 || activeChallengeId === 6
+                  ? "Your choice"
+                  : "Your answer"}
+              </label>
+              {activeChallengeId === 3 || activeChallengeId === 4 || activeChallengeId === 6 ? (
+                <div className="selection-status" id="challenge-answer">
+                  {activeChallengeId === 3
+                    ? selectedPart
+                      ? selectedPart === "sender"
+                        ? "Sender address selected"
+                        : "Email content selected"
+                      : "Nothing selected yet"
+                    : activeChallengeId === 4
+                      ? selectedPassword || "Nothing selected yet"
+                      : selectedRecovery
+                        ? "Response selected"
+                        : "Nothing selected yet"}
+                </div>
+              ) : (
+                <input
+                  id="challenge-answer"
+                  value={answer}
+                  onChange={(event) => setAnswer(event.target.value)}
+                  placeholder={activeChallenge.placeholder}
+                  autoComplete="off"
+                />
+              )}
+              <button className="submit-answer" type="submit">
+                Check answer ↵
+              </button>
+              <p
+                className={`answer-feedback ${
+                  feedback.startsWith("Correct") || feedback.startsWith("Level") ? "success" : ""
+                }`}
+                aria-live="polite"
+              >
+                {feedback || "You can try as many times as you need."}
+              </p>
+            </form>
+
+            <div className="challenge-nav">
+              <button disabled={activeIndex === 0} onClick={() => goToAdjacent(-1)}>
+                ← Previous
+              </button>
+              <button
+                disabled={
+                  activeIndex === challenges.length - 1 ||
+                  !isUnlocked(challenges[activeIndex + 1]?.id)
+                }
+                onClick={() => goToAdjacent(1)}
+              >
+                Next →
+              </button>
+            </div>
+          </aside>
+
+          <div className="challenge-main">
+            <div className="challenge-stage-heading">
+              <div>
+                <span>CHALLENGE {activeChallenge.id} OF 6</span>
+                <h2>{activeChallenge.objective}</h2>
+              </div>
+              <button onClick={() => setView("challenge-grid")}>View all challenges</button>
+            </div>
+
+            {activeChallengeId === 1 && (
+              <div className="browser-frame profile-challenge">
+                <BrowserBar url="https://robotclub.school/members/riley" />
+                <div className="profile-page">
+                  <div className="profile-banner" />
+                  <div className="profile-avatar">R</div>
+                  <h3>Riley Chen</h3>
+                  <span className="profile-role">Robot Club Captain</span>
                   <button
-                    className={`inspectable sender ${foundClues.includes("sender") ? "selected" : ""}`}
-                    onClick={() => toggleClue("sender")}
+                    className="select-page-button"
+                    onClick={() => setHiddenRevealed(true)}
                   >
-                    <span className="mail-avatar">B</span>
-                    <span>
-                      <strong>Beacon Bay Prize Team</strong>
-                      <small>prizes@beacon-pr1zes.example</small>
-                    </span>
-                    <i>{foundClues.includes("sender") ? "✓" : "+"}</i>
+                    Select page text
                   </button>
-                  <div className="message-body">
-                    <p>Hi Pip,</p>
-                    <button
-                      className={`inspectable inline ${foundClues.includes("rush") ? "selected" : ""}`}
-                      onClick={() => toggleClue("rush")}
-                    >
-                      YOU WON! Claim your ultra-rare festival badge RIGHT NOW. It disappears in
-                      five minutes!
-                      <i>{foundClues.includes("rush") ? "✓" : "+"}</i>
-                    </button>
-                    <button
-                      className={`inspectable fake-link ${foundClues.includes("link") ? "selected" : ""}`}
-                      onClick={() => toggleClue("link")}
-                    >
-                      beaconbay.school/claim-prize
-                      <i>{foundClues.includes("link") ? "✓" : "+"}</i>
-                    </button>
-                    <button
-                      className={`inspectable inline ${foundClues.includes("secret") ? "selected" : ""}`}
-                      onClick={() => toggleClue("secret")}
-                    >
-                      Reply with your password so we can check that it is really you.
-                      <i>{foundClues.includes("secret") ? "✓" : "+"}</i>
-                    </button>
-                    <p>Hurry!<br />The Prize Crew</p>
-                  </div>
-                  <div className="message-footer">
-                    <span>Safety tip: selecting evidence does not open the link.</span>
-                    <button
-                      className="primary-button"
-                      disabled={clueCount < 3}
-                      onClick={() => setStep("terminal")}
-                    >
-                      Send to Signal Shell
-                    </button>
+                  <div className="profile-columns">
+                    <section>
+                      <h4>About me</h4>
+                      <p>
+                        I build tiny robots, repair old keyboards, and never miss the school
+                        science fair.
+                      </p>
+                      <h4>Robot Club</h4>
+                      <p>
+                        Bolt’s launch team meets every Thursday in Lab 3.
+                      </p>
+                      <p className={`hidden-contact ${hiddenRevealed ? "revealed" : ""}`}>
+                        Club contact: riley@robotclub.school
+                      </p>
+                    </section>
+                    <section>
+                      <h4>Current project</h4>
+                      <div className="project-chip">BOLT · HELPER ROBOT</div>
+                      <p>Status: preparing for the science fair</p>
+                      <p>Favorite command: keep learning</p>
+                    </section>
                   </div>
                 </div>
-
-                <aside className="evidence-tray">
-                  <p className="eyebrow">EVIDENCE</p>
-                  {foundClues.length === 0 ? (
-                    <p className="empty-evidence">Your clues will appear here.</p>
-                  ) : (
-                    foundClues.map((id) => {
-                      const clue = clues.find((item) => item.id === id)!;
-                      return (
-                        <div className="evidence-item" key={id}>
-                          <span>✓</span>
-                          <div>
-                            <strong>{clue.label}</strong>
-                            <p>{clue.detail}</p>
-                          </div>
-                        </div>
-                      );
-                    })
-                  )}
-                </aside>
-              </section>
+              </div>
             )}
 
-            {step === "terminal" && (
-              <section className="terminal-screen">
-                <div className="terminal-brief">
-                  <p className="eyebrow">STEP 2 OF 2 · VERIFY</p>
-                  <h2>Give the evidence one last safe check.</h2>
-                  <p>
-                    Use the Signal Shell training terminal. Start with{" "}
-                    <code>scan message.eml</code>, then type <code>report</code>.
-                  </p>
-                  <div className="mission-rule">
-                    <strong>Scout rule</strong>
-                    <p>This terminal only works inside our pretend training world.</p>
+            {activeChallengeId === 2 && (
+              <div className="browser-frame message-challenge">
+                <BrowserBar url="https://schoolboard.example/robot-club" />
+                <div className="message-board">
+                  <div className="board-brand">
+                    <span>Q</span>
+                    <strong>SchoolBoard</strong>
+                  </div>
+                  <article className="message-post">
+                    <div className="post-author">
+                      <span>R</span>
+                      <div>
+                        <strong>Riley · Robot Club</strong>
+                        <small>Posted 15 minutes ago</small>
+                      </div>
+                    </div>
+                    <p className="reversed-message">
+                      3BAL si edoc eht .noos tob rof kool ot baL eht ta teeM
+                    </p>
+                    <div className="post-actions">Reply · Save · Share</div>
+                  </article>
+                  <div className="decode-note">
+                    <strong>Pattern check</strong>
+                    <p>The final word looks like “LAB3” backwards.</p>
                   </div>
                 </div>
-                <div className="terminal-window">
-                  <div className="terminal-toolbar">
-                    <span>
-                      <i /> <i /> <i />
-                    </span>
-                    <strong>SIGNAL SHELL · TRAINING SANDBOX</strong>
-                    <span>SAFE MODE</span>
+              </div>
+            )}
+
+            {activeChallengeId === 3 && (
+              <div className="browser-frame email-challenge">
+                <BrowserBar url="https://mail.robotclub.school/inbox/42" />
+                <div className="mail-app">
+                  <div className="mail-nav">
+                    <strong>Mail</strong>
+                    <span>Inbox 4</span>
+                    <span>Starred</span>
+                    <span>Sent</span>
                   </div>
-                  <div className="terminal-output" aria-live="polite">
-                    {terminalLines.map((line, index) => (
-                      <p key={`${line}-${index}`}>{line}</p>
-                    ))}
-                  </div>
-                  <form onSubmit={runCommand} className="terminal-input">
-                    <label htmlFor="signal-command">scout@signal:~$</label>
-                    <input
-                      id="signal-command"
-                      autoFocus
-                      autoComplete="off"
-                      value={command}
-                      onChange={(event) => setCommand(event.target.value)}
-                      aria-label="Signal Shell command"
-                    />
-                    <button type="submit">RUN</button>
-                  </form>
-                  <div className="command-chips">
-                    {["help", "scan message.eml", "inspect link", "report"].map((item) => (
-                      <button key={item} onClick={() => setCommand(item)}>
-                        {item}
+                  <article className="email-paper">
+                    <header>
+                      <span className="mail-logo">U</span>
+                      <div>
+                        <h3>URGENT: Bolt requires an update</h3>
+                        <button
+                          className={selectedPart === "sender" ? "selected-evidence" : ""}
+                          onClick={() => setSelectedPart("sender")}
+                        >
+                          School IT &lt;updates@robotcIub.school&gt;
+                          <span>Click to select</span>
+                        </button>
+                      </div>
+                    </header>
+                    <button
+                      className={`email-copy ${selectedPart === "copy" ? "selected-evidence" : ""}`}
+                      onClick={() => setSelectedPart("copy")}
+                    >
+                      Hello Robot Club,
+                      <br />
+                      <br />
+                      Bolt will shut down unless you install our emergency update now. Open the
+                      attached file and enter the club password.
+                    </button>
+                    <div className="fake-attachment">bolt_update.zip · 4.2 MB</div>
+                    <footer>
+                      Real school IT address: <strong>updates@robotclub.school</strong>
+                    </footer>
+                  </article>
+                </div>
+              </div>
+            )}
+
+            {activeChallengeId === 4 && (
+              <div className="browser-frame password-challenge">
+                <BrowserBar url="https://security.robotclub.school/password-check" />
+                <div className="password-page">
+                  <div className="shield-mark">✓</div>
+                  <h3>Robot Club password check</h3>
+                  <p>Choose the password that is hardest to guess and unique to this account.</p>
+                  <div className="password-options">
+                    {[
+                      "Bolt2026",
+                      "RobotClub123",
+                      "RileyBirthday!",
+                      "orbit-cactus-lantern-47!",
+                    ].map((option) => (
+                      <button
+                        key={option}
+                        className={selectedPassword === option ? "selected" : ""}
+                        onClick={() => setSelectedPassword(option)}
+                      >
+                        <span>{option}</span>
+                        <i>{selectedPassword === option ? "✓" : ""}</i>
                       </button>
                     ))}
                   </div>
                 </div>
-              </section>
+              </div>
             )}
 
-            {step === "complete" && (
-              <section className="complete-screen">
-                <div className="badge-burst" aria-hidden="true">
-                  <span>★</span>
+            {activeChallengeId === 5 && (
+              <div className="terminal-challenge">
+                <div className="terminal-titlebar">
+                  <span>
+                    <i />
+                    <i />
+                    <i />
+                  </span>
+                  CYBER QUEST TERMINAL · TRAINING MODE
+                  <strong>SAFE</strong>
                 </div>
-                <p className="eyebrow">MISSION COMPLETE</p>
-                <h2>Pip is safe—and Beacon Bay has a new phishing expert.</h2>
-                <p>
-                  You paused, checked the sender, noticed the pressure, inspected the link, and
-                  kept the password secret.
-                </p>
-                <div className="reward-row">
-                  <div>
-                    <span>+120</span>
-                    <small>XP EARNED</small>
+                <div className="terminal-body" aria-live="polite">
+                  {terminalLines.map((line, index) => (
+                    <p key={`${line}-${index}`}>{line}</p>
+                  ))}
+                </div>
+                <form className="terminal-command" onSubmit={runTerminal}>
+                  <label htmlFor="terminal-input">quest@lab:~$</label>
+                  <input
+                    id="terminal-input"
+                    autoFocus
+                    autoComplete="off"
+                    value={terminalInput}
+                    onChange={(event) => setTerminalInput(event.target.value)}
+                  />
+                  <button type="submit">Run</button>
+                </form>
+                <div className="terminal-shortcuts">
+                  {["help", "ls", "cat bolt.txt"].map((command) => (
+                    <button key={command} onClick={() => setTerminalInput(command)}>
+                      {command}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {activeChallengeId === 6 && (
+              <div className="browser-frame recovery-challenge">
+                <BrowserBar url="https://control.robotclub.school/recovery" />
+                <div className="recovery-page">
+                  <div className="bolt-status">
+                    <div className="robot-head">
+                      <i />
+                      <i />
+                      <span />
+                    </div>
+                    <div>
+                      <span>BOLT · CHARGING STATION 4</span>
+                      <h3>Offline, but safe</h3>
+                      <p>Choose the safest recovery plan.</p>
+                    </div>
                   </div>
-                  <div>
-                    <span>4 / 4</span>
-                    <small>CLUES FOUND</small>
+                  <div className="recovery-options">
+                    {[
+                      {
+                        value: "click-update",
+                        title: "Open the email attachment",
+                        copy: "Install the update and keep the old password.",
+                      },
+                      {
+                        value: "ignore-message",
+                        title: "Ignore everything",
+                        copy: "Turn Bolt back on without reporting the message.",
+                      },
+                      {
+                        value: "report-reset-mfa-update",
+                        title: "Report, reset, protect, update",
+                        copy: "Report the email, change the password, enable MFA, and use the real school updater.",
+                      },
+                    ].map((option) => (
+                      <button
+                        key={option.value}
+                        className={selectedRecovery === option.value ? "selected" : ""}
+                        onClick={() => setSelectedRecovery(option.value)}
+                      >
+                        <i>{selectedRecovery === option.value ? "✓" : ""}</i>
+                        <span>
+                          <strong>{option.title}</strong>
+                          <small>{option.copy}</small>
+                        </span>
+                      </button>
+                    ))}
                   </div>
-                  <div>
-                    <span>NEW</span>
-                    <small>PHISH FINDER BADGE</small>
-                  </div>
+                  {levelComplete && (
+                    <div className="level-complete-banner">
+                      <Icon name="star" />
+                      <div>
+                        <strong>Level 1 complete</strong>
+                        <span>Bolt is online and the science fair can begin.</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <div className="reflection-card">
-                  <strong>Take it into the real world</strong>
-                  <p>
-                    If a message surprises or rushes you, stop. Ask a trusted adult or teacher
-                    before you tap, reply, or share a secret.
-                  </p>
-                </div>
-                <div className="complete-actions">
-                  <button className="secondary-button" onClick={openChallenge}>
-                    Replay case
-                  </button>
-                  <button className="primary-button" onClick={() => setChallengeOpen(false)}>
-                    Return to Beacon Bay
-                  </button>
-                </div>
-              </section>
+              </div>
             )}
           </div>
-        </div>
+        </section>
       )}
     </main>
+  );
+}
+
+function BrowserBar({ url }: { url: string }) {
+  return (
+    <div className="browser-bar">
+      <span className="browser-dots">
+        <i />
+        <i />
+        <i />
+      </span>
+      <div className="address-bar">
+        <span>▣</span>
+        {url}
+      </div>
+    </div>
   );
 }

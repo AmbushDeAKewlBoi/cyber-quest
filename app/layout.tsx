@@ -12,18 +12,14 @@ export async function generateMetadata(): Promise<Metadata> {
     requestHeaders.get("x-forwarded-proto") ??
     (host.startsWith("localhost") ? "http" : "https");
   const metadataBase = new URL(`${protocol}://${host}`);
-  const title = "Cipher Scouts — A Cyber Safety Adventure";
+  const title = "Cyber Quest — Learn. Solve. Protect.";
   const description =
-    "A playable story-driven cybersecurity learning demo for elementary and middle school students.";
+    "A playable story-driven cybersecurity challenge platform for elementary and middle school students.";
 
   return {
     metadataBase,
     title,
     description,
-    icons: {
-      icon: "/favicon.svg",
-      shortcut: "/favicon.svg",
-    },
     openGraph: {
       title,
       description,
@@ -33,7 +29,7 @@ export async function generateMetadata(): Promise<Metadata> {
           url: new URL("/og.png", metadataBase).toString(),
           width: 1731,
           height: 909,
-          alt: "Cipher Scouts: A Cyber Safety Adventure",
+          alt: "Cyber Quest: Learn, Solve, Protect",
         },
       ],
     },

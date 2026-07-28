@@ -11,8 +11,8 @@ async function render() {
     new Request("http://localhost/", {
       headers: {
         accept: "text/html",
-        host: "cipher-scouts.example",
-        "x-forwarded-host": "cipher-scouts.example",
+        host: "cyber-quest.example",
+        "x-forwarded-host": "cyber-quest.example",
         "x-forwarded-proto": "https",
       },
     }),
@@ -28,34 +28,39 @@ async function render() {
   );
 }
 
-test("server-renders the Cipher Scouts mission map", async () => {
+test("server-renders the Cyber Quest level dashboard", async () => {
   const response = await render();
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
   const html = await response.text();
-  assert.match(html, /<title>Cipher Scouts — A Cyber Safety Adventure<\/title>/i);
-  assert.match(html, /The Phantom Prize/);
-  assert.match(html, /Training sandbox/);
-  assert.match(html, /PRODUCT VISION &amp; PLAN/);
-  assert.match(html, /https:\/\/cipher-scouts\.example\/og\.png/);
-  assert.doesNotMatch(html, /codex-preview|Your site is taking shape/);
+  assert.match(html, /<title>Cyber Quest — Learn\. Solve\. Protect\.<\/title>/i);
+  assert.match(html, /Choose a level/);
+  assert.match(html, /Signal Lost/);
+  assert.match(html, /Go to level/);
+  assert.match(html, /https:\/\/cyber-quest\.example\/og\.png/);
+  assert.doesNotMatch(html, /Cipher Scouts|codex-preview|Your site is taking shape/);
 });
 
-test("ships the playable challenge and accessibility safeguards", async () => {
+test("ships six progressive challenges and the requested workspace controls", async () => {
   const [page, css, packageJson] = await Promise.all([
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
     readFile(new URL("../package.json", import.meta.url), "utf8"),
   ]);
 
-  assert.match(page, /scan message\.eml/);
-  assert.match(page, /inspect link/);
-  assert.match(page, /report/);
+  assert.match(page, /Hidden in Plain Sight/);
+  assert.match(page, /Bring Bolt Home/);
+  assert.match(page, /Finish a challenge to unlock the next one/);
+  assert.match(page, /Briefing/);
+  assert.match(page, /Field manual/);
+  assert.match(page, /Hint/);
+  assert.match(page, /Previous/);
+  assert.match(page, /Next/);
+  assert.match(page, /cat bolt\.txt/);
   assert.match(page, /aria-live="polite"/);
-  assert.match(page, /Skip to mission map/);
+  assert.match(css, /grid-template-columns:\s*310px minmax\(0,\s*1fr\)/);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
-  assert.match(css, /button:focus-visible/);
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);
   await access(new URL("../public/og.png", import.meta.url));
 });

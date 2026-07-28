@@ -1,105 +1,68 @@
-# Cipher Scouts — Product Vision & Plan
+# Cyber Quest — Product Vision & Plan
 
 ## Product idea
 
-Cipher Scouts is a story-driven cybersecurity learning game for grades 4–8. Players join the Beacon Bay Signal Scouts and solve safe, fictional digital mysteries using observation, communication, logic, beginner terminal commands, and cyber-safety habits.
+Cyber Quest is a story-driven cybersecurity challenge platform for grades 4–8. Learners choose a level, work through a short sequence of challenges, and unlock the next challenge after solving the current one.
 
-The product promise is simple:
+The product promise:
 
-> I can recognize risky moments online, explain what makes them risky, and choose a safer next step.
+> Learn a cyber skill by using it inside a clear, safe story.
 
-## What we borrowed from CyberStart’s learning model
+## Experience structure
 
-- Missions and a continuing story make the learner an active investigator.
-- Short challenges unlock levels, points, badges, and new skills.
-- Multiple challenge surfaces—messages, websites, puzzles, files, and a terminal—keep the experience varied.
-- A Field Guide provides concept help, hints, and walkthroughs.
-- Progress is visible to the learner and, in a future classroom version, to educators.
+1. Choose a level from the level dashboard.
+2. Open the level to see its challenges in a grid.
+3. Start the first unlocked challenge.
+4. Read a short briefing and objective in the left panel.
+5. Solve the simulated website, email, puzzle, or terminal in the main workspace.
+6. Submit the answer, earn points, and unlock the next challenge.
 
-Cipher Scouts deliberately uses an original world, characters, visual language, writing, mission structure, and challenge content.
+The challenge workspace always keeps the same controls in the same place:
 
-## Audience and age bands
+- Challenge name and number
+- Points available
+- Briefing
+- Field Manual
+- Hint
+- Answer submission
+- Previous and next navigation
 
-### Trail Scouts — grades 4–5
+## Playable level: Signal Lost
 
-- Reading-first challenges with large touch targets
-- One new cybersecurity idea per mission
-- Optional read-aloud support
-- Strong visual cues and plain-language feedback
-- No need to type commands; command chips remain available
+One hour before the school science fair, the Robot Club’s helper robot Bolt disappears from the network. Six connected challenges follow the clues and teach one concept at a time:
 
-### Signal Scouts — grades 6–8
+1. **Hidden in Plain Sight** — reveal hidden webpage text.
+2. **Mixed-Up Message** — recognize and reverse a simple text pattern.
+3. **The Fake Update** — identify a look-alike phishing domain.
+4. **Password Pitfall** — choose a long, unique password.
+5. **Terminal Trail** — use `ls` and `cat` in a training terminal.
+6. **Bring Bolt Home** — choose the correct reporting and recovery steps.
 
-- More ambiguous evidence
-- Short typed terminal commands
-- Multi-step website, message, and file investigations
-- Reflection questions requiring the learner to explain their reasoning
-
-## Core learning loop
-
-1. Story beat: something in Beacon Bay needs help.
-2. Observe: inspect a realistic but fictional artifact.
-3. Try: make a choice or use a safe simulated tool.
-4. Feedback: see why the choice worked or did not.
-5. Debrief: name the principle and apply it to a fresh situation.
-
-Target mission length: 8–12 minutes.
-
-## Season one
-
-1. The Phantom Prize — phishing and pressure tactics
-2. Passphrase Forge — long, unique passwords and password managers
-3. Two Keys at Twilight — multifactor authentication
-4. The Update Express — software updates and trusted sources
-5. The Oversharing Fog — privacy, location, and personal information
-6. The Kindness Protocol — reporting, trusted adults, and safe communication
-
-## Playable MVP
-
-- One world map with six missions
-- Reusable challenge engine for message, website, file, puzzle, and terminal scenes
-- Field Guide with concept cards, layered hints, and final explanations
-- XP, badges, mission progress, and optional replay
-- Educator view with completion, attempts, hints used, and concept mastery
-- Local/device-only progress for the earliest pilot; no child account required
-
-## Demo challenge
-
-The included mission, “The Phantom Prize,” asks the learner to:
-
-- identify at least three phishing warning signs;
-- safely scan the fictional message in the Signal Shell training terminal;
-- report the message without opening its link;
-- connect the fictional activity to a real-world action: pause and ask a trusted adult or teacher.
+Total level score: 790 points.
 
 ## Design system
 
-- Direction: storybook mission control, not stereotypical “hacker green”
-- Palette: navy ink, paper cream, signal teal, warning coral, reward yellow
-- Typography: rounded display face, highly readable sans body, mono only for tools and labels
-- Layout: map-centered first viewport, visible mission rail, persistent help
-- Motion: brief state feedback only; reduced-motion preferences supported
-- Accessibility: keyboard-operable interactions, visible focus, 44px targets, no color-only status, plain-language errors, responsive mobile layout
+- Direction: simple flat educational game interface
+- Primary shell: deep navy
+- Primary action: clear green
+- Challenge surfaces: white cards with calm, single-purpose colors
+- Typography: readable system sans with monospace reserved for code and terminal content
+- Layout: compact fixed sidebar plus a large challenge workspace
+- Status: explicit labels for ready, locked, and complete states
+- Motion: small feedback transitions only; reduced-motion preferences supported
 
 ## Safety and privacy requirements
 
-- All technical activity happens in clearly labeled fictional sandboxes.
-- No real domains, credentials, personal data, or open-ended external command execution.
-- Teach defensive intent, permission, reporting, and asking a trusted adult.
-- For an elementary audience, avoid collecting child personal information in the pilot.
-- Before production accounts, complete a formal COPPA review, parental notice/consent design, retention plan, educator controls, and security assessment.
+- Every technical activity runs in a fictional training surface.
+- No real credentials, domains, personal information, or open-ended shell execution.
+- Defensive intent, permission, reporting, and trusted-adult support are part of the story.
+- Early pilots should not require child accounts or collect personal data.
+- Production accounts require a formal COPPA review, parental notice and consent design, retention policy, educator controls, and security assessment.
 
-## Validation plan
+## Next production steps
 
-- Five learner sessions in each age band
-- One classroom pilot with an educator observer
-- Measure completion, hint use, wrong-answer recovery, and transfer to a new scenario
-- Success target: 80% of learners identify three phishing signs in a novel message after completing the mission
-
-## Suggested next build
-
-1. Add mission two using the same challenge engine.
-2. Add learner-level selection and read-aloud support.
-3. Prototype the educator dashboard.
-4. Pilot without child accounts and log only anonymous session analytics.
-5. Refine difficulty and reading level from observation before building the full season.
+1. Add persistence for challenge completion and points.
+2. Add learner reading-level options and optional read-aloud support.
+3. Create an educator dashboard for progress, attempts, and hint usage.
+4. Add Level 2 using the same challenge engine.
+5. Pilot with grades 4–5 and 6–8 separately and adjust the reading level and difficulty.
