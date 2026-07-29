@@ -17,6 +17,12 @@ type Challenge = {
   hint: string;
   manualTitle: string;
   manual: string;
+  manualSteps?: string[];
+  manualCommands?: {
+    command: string;
+    usage: string;
+    description: string;
+  }[];
   answer: string;
   placeholder: string;
 };
@@ -100,10 +106,39 @@ const challenges: Challenge[] = [
     objective: "Use the terminal to find Bolt's last known location.",
     briefing:
       "Bolt's safe training terminal contains one log file. List the files, open the log, and enter the location as your answer.",
-    hint: "Type “ls” to list files. Then type “cat bolt.txt” to read the log.",
-    manualTitle: "Two terminal commands",
+    hint:
+      "Open the Field manual. First use the file-listing command, then use the file-reading command with a promising filename.",
+    manualTitle: "Terminal command guide",
     manual:
-      "The “ls” command lists files. The “cat filename” command prints a text file. These commands only run in this training window.",
+      "Commands are short instructions typed after the prompt. Run one command at a time, read its output, and use what you learn to choose the next command.",
+    manualSteps: [
+      "Check which folder you are in.",
+      "List the files in that folder.",
+      "Read a promising text file by typing its exact name after cat.",
+      "Enter the location from the log in the answer box.",
+    ],
+    manualCommands: [
+      {
+        command: "pwd",
+        usage: "pwd",
+        description: "Print the name of your current folder.",
+      },
+      {
+        command: "ls",
+        usage: "ls",
+        description: "List the files available in the current folder.",
+      },
+      {
+        command: "cat",
+        usage: "cat filename.txt",
+        description: "Print the contents of a file. Replace filename.txt with a listed file.",
+      },
+      {
+        command: "clear",
+        usage: "clear",
+        description: "Clear the terminal screen without deleting any files.",
+      },
+    ],
     answer: "charging-station-4",
     placeholder: "Enter Bolt's location",
   },
@@ -133,11 +168,17 @@ const challenges: Challenge[] = [
     tool: "Browser",
     objective: "Choose the real Robot Club website before signing in.",
     briefing:
-      "Bolt is safe, but the fake update left a login link in the club bookmarks. Compare both addresses and choose the real school domain.",
-    hint: "Read from the end of each domain. The real address ends exactly in robotclub.school.",
+      "Bolt is safe, but the fake update left several similar login links in the club bookmarks. Compare the registered domains before choosing.",
+    hint: "Ignore https:// and everything after the first slash. Work backward through the remaining name to find the real registered domain.",
     manualTitle: "Reading a URL",
     manual:
       "The registered domain appears just before the first slash. Padlocks protect the connection, but they do not prove a website belongs to your school.",
+    manualSteps: [
+      "Find the first slash after https://.",
+      "Read the domain before that slash from right to left.",
+      "Treat words added after .school, .org, or .net as part of a different domain.",
+      "Choose the address whose registered domain belongs to Robot Club.",
+    ],
     answer: "robotclub.school",
     placeholder: "Choose the real website",
   },
@@ -150,13 +191,19 @@ const challenges: Challenge[] = [
     tool: "Tablet",
     objective: "Give the robot camera app only the permission it needs.",
     briefing:
-      "A new camera controller wants access to almost everything on the club tablet. Bolt only needs it to scan science-fair badges.",
-    hint: "A badge scanner needs the camera while you use it—not contacts, messages, or your location.",
+      "The Bolt Badge Scanner reads printed QR badges and shows the matching booth number. Configure its permissions before installation.",
+    hint: "Match each permission to a feature in the app description. Select only what is required to read a printed QR code.",
     manualTitle: "Least privilege",
     manual:
       "Apps should receive only the permissions required for their job. Deny unrelated access and prefer “while using the app” when available.",
-    answer: "camera-while-using",
-    placeholder: "Choose the safest permissions",
+    manualSteps: [
+      "List the app’s promised features: scan a printed code and show a booth number.",
+      "Ask what hardware or personal data each feature truly needs.",
+      "Select required permissions and leave unrelated permissions off.",
+      "Use “while using the app” instead of “always” when possible.",
+    ],
+    answer: "camera",
+    placeholder: "Configure the app permissions",
   },
   {
     id: 9,
@@ -167,12 +214,18 @@ const challenges: Challenge[] = [
     tool: "Network list",
     objective: "Connect the fair tablet to the trusted school network.",
     briefing:
-      "Three networks appear near the science fair. One is the protected school network; the others could expose club traffic.",
-    hint: "Use the exact network name posted by the teacher and choose the one marked secured.",
+      "Three nearly identical networks appear near Room 204. The school setup note requires WPA3-Enterprise and a district-issued certificate.",
+    hint: "Signal strength and a familiar name are not proof. Compare the security type and certificate issuer in each network’s details.",
     manualTitle: "Safer Wi-Fi",
     manual:
       "Attackers can copy familiar network names. Confirm the exact name with a trusted adult and avoid open networks for accounts or private information.",
-    answer: "CQ-School-Secure",
+    manualSteps: [
+      "Open or read the details for every similar network.",
+      "Compare the security type with the trusted setup note.",
+      "Check who issued the network certificate.",
+      "Choose only when both technical details match.",
+    ],
+    answer: "CQ-204-Secure",
     placeholder: "Choose the trusted network",
   },
   {
@@ -185,10 +238,16 @@ const challenges: Challenge[] = [
     objective: "Find the IP address responsible for repeated failed logins.",
     briefing:
       "The club account is receiving login attempts. Read the access log and identify the address that failed several times in one minute.",
-    hint: "Look for one IP address that appears again and again with the red FAILED result.",
+    hint: "Scan the whole timeline. Count failed results for each source IP instead of judging a single row.",
     manualTitle: "Reading access logs",
     manual:
       "Security logs record events such as time, username, IP address, and result. Repeated failures from one source can be a sign of password guessing.",
+    manualSteps: [
+      "Read each row across: time, username, source IP, then result.",
+      "Keep a small count of FAILED events for each IP.",
+      "Do not treat one failed login followed by success as an attack by itself.",
+      "Select the IP with a repeated pattern across the timeline.",
+    ],
     answer: "203.0.113.42",
     placeholder: "Select the suspicious IP address",
   },
@@ -206,6 +265,12 @@ const challenges: Challenge[] = [
     manualTitle: "Hashes as fingerprints",
     manual:
       "A cryptographic hash is a file fingerprint. If even a tiny part of a file changes, its hash should change too. Matching hashes help verify integrity.",
+    manualSteps: [
+      "Match each filename across the approved and downloaded columns.",
+      "Compare the hash one group at a time from left to right.",
+      "Do not judge a file by its name or type.",
+      "Select the file whose two hashes differ.",
+    ],
     answer: "bolt_update.zip",
     placeholder: "Select the changed file",
   },
@@ -223,6 +288,12 @@ const challenges: Challenge[] = [
     manualTitle: "Incident response",
     manual:
       "A simple response flow is: identify, contain, recover, and learn. Do not erase evidence or keep using a file that failed an integrity check.",
+    manualSteps: [
+      "Identify what the evidence proves and what is still unknown.",
+      "Contain the risky account or file without destroying logs.",
+      "Recover with reset access and verified files.",
+      "Report and document the incident so the team can prevent a repeat.",
+    ],
     answer: "contain-reset-verify-report",
     placeholder: "Choose the complete incident response",
   },
@@ -278,22 +349,25 @@ const choiceLabels: Record<string, string> = {
   sender: "Sender address selected",
   copy: "Email content selected",
   "robotclub.school": "robotclub.school selected",
+  "robotclub-schools.org": "robotclub-schools.org selected",
+  "robotclub.school.login-help.org": "login-help.org selected",
   "robot-club-school.example-login.net": "example-login.net selected",
-  "camera-while-using": "Camera only · while using selected",
-  "camera-contacts-location": "Camera, contacts, and location selected",
-  "allow-everything": "Allow everything selected",
-  "CQ-School-Secure": "CQ-School-Secure selected",
-  "CQ_School_Free": "CQ_School_Free selected",
-  "ScienceFair-Guest": "ScienceFair-Guest selected",
+  "CQ-204-Secure": "CQ-204-Secure selected",
+  "CQ-204_Secure": "CQ-204_Secure selected",
+  "CQ-204-Secure-5G": "CQ-204-Secure-5G selected",
   "198.51.100.18": "198.51.100.18 selected",
+  "198.51.100.77": "198.51.100.77 selected",
   "192.0.2.15": "192.0.2.15 selected",
   "203.0.113.42": "203.0.113.42 selected",
   "slides.pdf": "slides.pdf selected",
+  "schedule.csv": "schedule.csv selected",
+  "poster.png": "poster.png selected",
+  "readme.txt": "readme.txt selected",
   "bolt_firmware.bin": "bolt_firmware.bin selected",
   "bolt_update.zip": "bolt_update.zip selected",
   "contain-reset-verify-report": "Full incident response selected",
-  "delete-and-ignore": "Delete and ignore selected",
-  "keep-testing": "Keep testing selected",
+  "reset-and-clean": "Reset and clean up selected",
+  "block-and-launch": "Block and launch selected",
 };
 
 const challengeGraphicLabels = [
@@ -355,11 +429,12 @@ export default function Home() {
   const [selectedPassword, setSelectedPassword] = useState("");
   const [selectedRecovery, setSelectedRecovery] = useState("");
   const [selectedOption, setSelectedOption] = useState("");
+  const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
   const [hiddenRevealed, setHiddenRevealed] = useState(false);
   const [terminalInput, setTerminalInput] = useState("");
   const [terminalLines, setTerminalLines] = useState([
     "Cyber Quest training terminal",
-    "Type help if you need the available commands.",
+    "Open the Field manual to learn the available commands.",
   ]);
   const [celebration, setCelebration] = useState<{
     key: number;
@@ -407,11 +482,12 @@ export default function Home() {
     setSelectedPassword("");
     setSelectedRecovery("");
     setSelectedOption("");
+    setSelectedPermissions([]);
     setHiddenRevealed(false);
     setTerminalInput("");
     setTerminalLines([
       "Cyber Quest training terminal",
-      "Type help if you need the available commands.",
+      "Open the Field manual to learn the available commands.",
     ]);
     setView("challenge");
     window.scrollTo({ top: 0 });
@@ -450,7 +526,9 @@ export default function Home() {
   function submitAnswer(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const submitted =
-      activeChallengeId === 3
+      activeChallengeId === 8
+        ? [...selectedPermissions].sort().join(",")
+        : activeChallengeId === 3
         ? selectedPart
         : activeChallengeId === 4
           ? selectedPassword
@@ -468,7 +546,20 @@ export default function Home() {
     select: (choice: string) => void,
   ) {
     select(value);
-    checkAnswer(value);
+    if (activeChallengeId <= 6) {
+      checkAnswer(value);
+    } else {
+      setFeedback("Choice selected. Review the evidence, then check your answer.");
+    }
+  }
+
+  function togglePermission(permission: string) {
+    setSelectedPermissions((current) =>
+      current.includes(permission)
+        ? current.filter((item) => item !== permission)
+        : [...current, permission],
+    );
+    setFeedback("Permissions updated. Review the app’s needs, then check your answer.");
   }
 
   function goToAdjacent(direction: -1 | 1) {
@@ -483,18 +574,22 @@ export default function Home() {
     const command = terminalInput.trim().toLowerCase();
     if (!command) return;
 
-    let response = "Command not found. Type help.";
+    let response = "Command not found. Check the Field manual for command format.";
     if (command === "help") {
-      response = "Available commands: ls · cat bolt.txt · clear";
+      response = "Command help is in the Field manual on the left.";
+    } else if (command === "pwd") {
+      response = "/training/bolt";
     } else if (command === "ls") {
       response = "bolt.txt   readme.txt";
     } else if (command === "cat bolt.txt") {
       response =
         "LAST SIGNAL: charging-station-4\nSTATUS: safe, offline\nNEXT STEP: report the fake update";
     } else if (command === "cat readme.txt") {
-      response = "Training files only. Try reading bolt.txt.";
+      response = "CASE NOTE: Inspect the other text file for Bolt's final signal.";
+    } else if (command.startsWith("cat ")) {
+      response = `cat: ${command.slice(4)}: No such file`;
     } else if (command === "clear") {
-      setTerminalLines(["Terminal cleared. Type help for commands."]);
+      setTerminalLines(["Terminal cleared. Open the Field manual for commands."]);
       setTerminalInput("");
       return;
     }
@@ -821,6 +916,31 @@ export default function Home() {
                     : "Hint"}
               </span>
               <p>{panelCopy}</p>
+              {panel === "manual" &&
+                (activeChallenge.manualSteps || activeChallenge.manualCommands) && (
+                  <div className="manual-reference">
+                    {activeChallenge.manualSteps && (
+                      <ol>
+                        {activeChallenge.manualSteps.map((step) => (
+                          <li key={step}>{step}</li>
+                        ))}
+                      </ol>
+                    )}
+                    {activeChallenge.manualCommands && (
+                      <div className="command-reference">
+                        {activeChallenge.manualCommands.map((item) => (
+                          <article key={item.command}>
+                            <code>{item.usage}</code>
+                            <span>
+                              <strong>{item.command}</strong>
+                              <small>{item.description}</small>
+                            </span>
+                          </article>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               <div className="objective-box">
                 <strong>Your task</strong>
                 <p>{activeChallenge.objective}</p>
@@ -829,9 +949,11 @@ export default function Home() {
 
             <form className="answer-form" onSubmit={submitAnswer}>
               <label htmlFor="challenge-answer">
-                {choiceChallengeIds.has(activeChallengeId)
-                  ? "Your choice"
-                  : "Your answer"}
+                {activeChallengeId === 8
+                  ? "Selected permissions"
+                  : choiceChallengeIds.has(activeChallengeId)
+                    ? "Your choice"
+                    : "Your answer"}
               </label>
               {choiceChallengeIds.has(activeChallengeId) ? (
                 <div className="selection-status" id="challenge-answer">
@@ -843,6 +965,12 @@ export default function Home() {
                         ? selectedRecovery
                           ? "Response selected"
                           : "Nothing selected yet"
+                        : activeChallengeId === 8
+                          ? selectedPermissions.length
+                            ? `${selectedPermissions.length} permission${
+                                selectedPermissions.length === 1 ? "" : "s"
+                              } selected`
+                            : "No permissions selected"
                         : choiceLabels[selectedOption] || "Nothing selected yet"}
                 </div>
               ) : (
@@ -1062,13 +1190,6 @@ export default function Home() {
                   />
                   <button type="submit">Run</button>
                 </form>
-                <div className="terminal-shortcuts">
-                  {["help", "ls", "cat bolt.txt"].map((command) => (
-                    <button key={command} onClick={() => setTerminalInput(command)}>
-                      {command}
-                    </button>
-                  ))}
-                </div>
               </div>
             )}
 
@@ -1141,24 +1262,31 @@ export default function Home() {
                     <div>
                       <small>BOOKMARK SAFETY CHECK</small>
                       <h3>Which website really belongs to Robot Club?</h3>
-                      <p>Both use HTTPS. Inspect the complete domain before choosing.</p>
+                      <p>All three use HTTPS. Inspect the complete domain before choosing.</p>
                     </div>
                   </div>
                   <div className="url-options">
                     {[
                       {
-                        value: "robot-club-school.example-login.net",
-                        label: "Shared in the update email",
+                        value: "robotclub.school.login-help.org",
+                        label: "Bookmark A",
                         protocol: "https://",
-                        domain: "robot-club-school.example-login.net",
-                        path: "/signin",
+                        domain: "robotclub.school.login-help.org",
+                        path: "/club/signin",
                       },
                       {
                         value: "robotclub.school",
-                        label: "Saved by Ms. Alvarez",
+                        label: "Bookmark B",
                         protocol: "https://",
-                        domain: "robotclub.school",
-                        path: "/members",
+                        domain: "portal.robotclub.school",
+                        path: "/account",
+                      },
+                      {
+                        value: "robotclub-schools.org",
+                        label: "Bookmark C",
+                        protocol: "https://",
+                        domain: "robotclub-schools.org",
+                        path: "/members/login",
                       },
                     ].map((option) => (
                       <button
@@ -1198,36 +1326,57 @@ export default function Home() {
                       <div>
                         <small>NEW APP</small>
                         <h3>Bolt Badge Scanner</h3>
-                        <p>Choose what this app can use.</p>
+                        <p>Configure each permission before installing.</p>
                       </div>
+                    </div>
+                    <div className="permission-requirements">
+                      <strong>APP DESCRIPTION</strong>
+                      <ul>
+                        <li>Scans printed QR badges using the tablet</li>
+                        <li>Shows a booth number already stored inside the app</li>
+                        <li>Does not record audio, display maps, or message club members</li>
+                      </ul>
                     </div>
                     <div className="permission-options">
                       {[
                         {
-                          value: "camera-while-using",
-                          title: "Camera · while using the app",
-                          copy: "No contacts, messages, microphone, or location.",
-                          badge: "MINIMUM",
+                          value: "camera",
+                          title: "Camera",
+                          copy: "Take photos and video while the app is open.",
+                          badge: "HARDWARE",
                         },
                         {
-                          value: "camera-contacts-location",
-                          title: "Camera, contacts, and precise location",
-                          copy: "Allow access every time the tablet is on.",
-                          badge: "EXTRA ACCESS",
+                          value: "microphone",
+                          title: "Microphone",
+                          copy: "Record audio while the app is open.",
+                          badge: "HARDWARE",
                         },
                         {
-                          value: "allow-everything",
-                          title: "Allow every permission",
-                          copy: "Let the app decide what it needs later.",
-                          badge: "FULL ACCESS",
+                          value: "location",
+                          title: "Precise location",
+                          copy: "Read the tablet’s exact physical location.",
+                          badge: "PERSONAL DATA",
+                        },
+                        {
+                          value: "contacts",
+                          title: "Contacts",
+                          copy: "Read names and contact information.",
+                          badge: "PERSONAL DATA",
+                        },
+                        {
+                          value: "photos",
+                          title: "Photos and videos",
+                          copy: "Read media already saved on the tablet.",
+                          badge: "FILES",
                         },
                       ].map((option) => (
                         <button
                           key={option.value}
-                          className={selectedOption === option.value ? "selected" : ""}
-                          onClick={() => chooseAnswer(option.value, setSelectedOption)}
+                          className={selectedPermissions.includes(option.value) ? "selected" : ""}
+                          aria-pressed={selectedPermissions.includes(option.value)}
+                          onClick={() => togglePermission(option.value)}
                         >
-                          <i>{selectedOption === option.value ? "✓" : ""}</i>
+                          <i>{selectedPermissions.includes(option.value) ? "✓" : ""}</i>
                           <span>
                             <small>{option.badge}</small>
                             <strong>{option.title}</strong>
@@ -1249,25 +1398,30 @@ export default function Home() {
                     <div>
                       <small>AVAILABLE NETWORKS</small>
                       <h3>Choose a network</h3>
-                      <p>Teacher’s network card: <strong>CQ-School-Secure</strong></p>
+                      <p>
+                        Setup note: <strong>Room 204 · WPA3-Enterprise · district-it.school</strong>
+                      </p>
                     </div>
                   </div>
                   <div className="wifi-list">
                     {[
                       {
-                        value: "CQ_School_Free",
-                        security: "Open · no password",
+                        value: "CQ-204_Secure",
+                        security: "WPA2-Personal",
+                        certificate: "Certificate: none",
+                        strength: 4,
+                      },
+                      {
+                        value: "CQ-204-Secure-5G",
+                        security: "WPA3-Enterprise",
+                        certificate: "Certificate: district-login.school",
+                        strength: 4,
+                      },
+                      {
+                        value: "CQ-204-Secure",
+                        security: "WPA3-Enterprise",
+                        certificate: "Certificate: district-it.school",
                         strength: 3,
-                      },
-                      {
-                        value: "CQ-School-Secure",
-                        security: "Secured · school certificate",
-                        strength: 4,
-                      },
-                      {
-                        value: "ScienceFair-Guest",
-                        security: "Open · sign-in page",
-                        strength: 4,
                       },
                     ].map((network) => (
                       <button
@@ -1283,13 +1437,15 @@ export default function Home() {
                         <span>
                           <strong>{network.value}</strong>
                           <small>{network.security}</small>
+                          <small>{network.certificate}</small>
                         </span>
-                        <em>{network.security.startsWith("Secured") ? "LOCKED" : "OPEN"}</em>
+                        <em>DETAILS</em>
                       </button>
                     ))}
                   </div>
                   <div className="network-warning">
-                    Network names can be copied. Match every character with a trusted source.
+                    Signal strength is only distance—not trust. Compare every detail with the
+                    setup note.
                   </div>
                 </div>
               </div>
@@ -1309,67 +1465,107 @@ export default function Home() {
                   </div>
                   <div className="log-summary">
                     <div>
-                      <small>LAST 5 MINUTES</small>
-                      <strong>8 login events</strong>
+                      <small>AUTHENTICATION TIMELINE</small>
+                      <strong>12 chronological events</strong>
                     </div>
-                    <span>
-                      <i>5</i>
-                      failed
-                    </span>
-                    <span>
-                      <i>3</i>
-                      successful
-                    </span>
+                    <p>Select a row to investigate its source IP.</p>
                   </div>
                   <div className="log-columns" aria-hidden="true">
-                    <span>IP ADDRESS</span>
-                    <span>EVENTS</span>
+                    <span>TIME</span>
+                    <span>USERNAME</span>
+                    <span>SOURCE IP</span>
                     <span>RESULT</span>
                   </div>
-                  <div className="ip-groups">
+                  <div className="log-rows">
                     {[
                       {
-                        value: "198.51.100.18",
-                        events: ["09:51:02 · riley · SUCCESS", "09:53:14 · riley · SUCCESS"],
-                        result: "2 normal",
-                        status: "normal",
+                        time: "09:51:02",
+                        user: "riley",
+                        ip: "198.51.100.18",
+                        result: "SUCCESS",
                       },
                       {
-                        value: "203.0.113.42",
-                        events: [
-                          "09:52:01 · robot-club · FAILED",
-                          "09:52:14 · robot-club · FAILED",
-                          "09:52:28 · robot-club · FAILED",
-                          "09:52:47 · robot-club · FAILED",
-                        ],
-                        result: "4 failed",
-                        status: "alert",
+                        time: "09:51:13",
+                        user: "robot-club",
+                        ip: "203.0.113.42",
+                        result: "FAILED",
                       },
                       {
-                        value: "192.0.2.15",
-                        events: ["09:54:03 · teacher · FAILED", "09:54:22 · teacher · SUCCESS"],
-                        result: "1 retry",
-                        status: "review",
+                        time: "09:51:25",
+                        user: "teacher",
+                        ip: "192.0.2.15",
+                        result: "SUCCESS",
                       },
-                    ].map((group) => (
+                      {
+                        time: "09:51:37",
+                        user: "robot-club",
+                        ip: "203.0.113.42",
+                        result: "FAILED",
+                      },
+                      {
+                        time: "09:51:54",
+                        user: "riley",
+                        ip: "198.51.100.18",
+                        result: "SUCCESS",
+                      },
+                      {
+                        time: "09:52:19",
+                        user: "visitor",
+                        ip: "198.51.100.77",
+                        result: "FAILED",
+                      },
+                      {
+                        time: "09:52:31",
+                        user: "robot-club",
+                        ip: "203.0.113.42",
+                        result: "FAILED",
+                      },
+                      {
+                        time: "09:52:58",
+                        user: "teacher",
+                        ip: "192.0.2.15",
+                        result: "FAILED",
+                      },
+                      {
+                        time: "09:53:10",
+                        user: "robot-club",
+                        ip: "203.0.113.42",
+                        result: "FAILED",
+                      },
+                      {
+                        time: "09:53:26",
+                        user: "riley",
+                        ip: "198.51.100.18",
+                        result: "SUCCESS",
+                      },
+                      {
+                        time: "09:53:40",
+                        user: "teacher",
+                        ip: "192.0.2.15",
+                        result: "SUCCESS",
+                      },
+                      {
+                        time: "09:54:05",
+                        user: "visitor",
+                        ip: "198.51.100.77",
+                        result: "SUCCESS",
+                      },
+                    ].map((row) => (
                       <button
-                        key={group.value}
-                        className={`${group.status} ${selectedOption === group.value ? "selected" : ""}`}
-                        onClick={() => chooseAnswer(group.value, setSelectedOption)}
+                        key={`${row.time}-${row.ip}`}
+                        className={selectedOption === row.ip ? "selected" : ""}
+                        onClick={() => chooseAnswer(row.ip, setSelectedOption)}
                       >
-                        <code>{group.value}</code>
-                        <span>
-                          {group.events.map((event) => (
-                            <small key={event}>{event}</small>
-                          ))}
-                        </span>
-                        <em>{group.result}</em>
+                        <time>{row.time}</time>
+                        <span>{row.user}</span>
+                        <code>{row.ip}</code>
+                        <em>{row.result}</em>
                       </button>
                     ))}
                   </div>
                   <div className="analyst-note">
-                    <strong>Analyst tip:</strong> Group events by IP, then look for repetition and
-                    unusual results.
+                    The rows are intentionally ungrouped. Use the Field manual to decide which
+                    pattern matters.
                   </div>
                 </div>
               </div>
@@ -1395,18 +1591,33 @@ export default function Home() {
                     {[
                       {
                         value: "slides.pdf",
-                        approved: "91A7…2C10",
-                        downloaded: "91A7…2C10",
+                        approved: "91a7-d22e-4c10",
+                        downloaded: "91a7-d22e-4c10",
                       },
                       {
-                        value: "bolt_firmware.bin",
-                        approved: "4D22…8E9B",
-                        downloaded: "4D22…8E9B",
+                        value: "schedule.csv",
+                        approved: "8f00-c12a-71de",
+                        downloaded: "8f00-c12a-71de",
                       },
                       {
                         value: "bolt_update.zip",
-                        approved: "B731…0FA2",
-                        downloaded: "B731…9C44",
+                        approved: "b731-8e23-0fa2",
+                        downloaded: "b731-8e23-9c44",
+                      },
+                      {
+                        value: "poster.png",
+                        approved: "cc09-721e-31a8",
+                        downloaded: "cc09-721e-31a8",
+                      },
+                      {
+                        value: "bolt_firmware.bin",
+                        approved: "4d22-a891-8e9b",
+                        downloaded: "4d22-a891-8e9b",
+                      },
+                      {
+                        value: "readme.txt",
+                        approved: "10ce-55f0-2b77",
+                        downloaded: "10ce-55f0-2b77",
                       },
                     ].map((file) => (
                       <button
@@ -1422,7 +1633,7 @@ export default function Home() {
                           <i>APPROVED</i>
                           {file.approved}
                         </code>
-                        <code className={file.approved === file.downloaded ? "match" : "mismatch"}>
+                        <code>
                           <i>DOWNLOADED</i>
                           {file.downloaded}
                         </code>
@@ -1476,21 +1687,21 @@ export default function Home() {
                   <div className="launch-options">
                     {[
                       {
-                        value: "delete-and-ignore",
-                        title: "Delete and ignore",
+                        value: "reset-and-clean",
+                        title: "Reset and clean up",
                         steps: [
-                          "Erase the alert and logs",
-                          "Keep the current password",
-                          "Launch with the changed file",
+                          "Reset the club password",
+                          "Delete failed-login logs after noting the IP",
+                          "Scan the downloaded update, then launch",
                         ],
                       },
                       {
-                        value: "keep-testing",
-                        title: "Keep testing live",
+                        value: "block-and-launch",
+                        title: "Block and launch",
                         steps: [
-                          "Leave the account online",
-                          "Try the changed update",
-                          "Tell the teacher after launch",
+                          "Block the repeated source IP",
+                          "Keep existing sessions signed in",
+                          "Skip the changed update and launch now",
                         ],
                       },
                       {
