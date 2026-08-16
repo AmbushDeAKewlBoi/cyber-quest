@@ -27,7 +27,7 @@ The challenge workspace always keeps the same controls in the same place:
 - Answer submission
 - Previous and next navigation
 
-## Playable level: Signal Lost
+## Complete six-stage campaign
 
 One hour before the school science fair, the Robot Club’s helper robot Bolt disappears from the network. Twelve connected challenges follow the clues, recover Bolt, and secure the science-fair launch one concept at a time:
 
@@ -44,14 +44,27 @@ One hour before the school science fair, the Robot Club’s helper robot Bolt di
 11. **File Fingerprint** — compare SHA-256 fingerprints and find a changed download.
 12. **Junior SOC Shift** — combine evidence and choose an incident-response playbook.
 
-Total level score: 1,850 points.
+Signal Lost remains the 12-mission onboarding level. Five additional playable
+levels provide 40 further missions:
 
-Difficulty rises in four guided stages:
+- **The Copycat Account / Digital Defender** — identity and account evidence
+- **Library Lockout / Systems Investigator** — system and recovery evidence
+- **Festival Firewall / Network Analyst** — network and availability evidence
+- **Midnight Archive / Forensics Specialist** — forensic reconstruction
+- **Operation Glasshouse / Incident Commander** — research-led capstone response
+
+The campaign contains 52 missions. Each answer is validated, each mission
+unlocks the next, and each completed level unlocks the next stage. Progress is
+stored locally on the learner's device.
+
+Difficulty rises across six guided stages:
 
 1. **Foundation (1–3)** — observe clues and recognize common risks.
 2. **Defender (4–6)** — make safe account, terminal, and recovery decisions.
 3. **Investigator (7–9)** — compare technical details across URLs, permissions, and networks.
-4. **Junior Analyst (10–12)** — interpret logs, verify file integrity, and respond to a combined incident.
+4. **Network Analyst** — reason across HTTP, DNS, TLS, traffic, and firewall evidence.
+5. **Forensics Specialist** — normalize timelines, triage files, correlate independent artifacts, and protect evidence integrity.
+6. **Incident Commander** — research standards, prioritize risk, write detection logic, manage tradeoffs, and brief leaders precisely.
 
 Later challenges follow a “teach, inspect, decide” pattern:
 
@@ -81,8 +94,8 @@ Later challenges follow a “teach, inspect, decide” pattern:
 
 ## Next production steps
 
-1. Add persistence for challenge completion and points.
+1. Add server-side assessment and educator-managed learner accounts after a formal privacy review.
 2. Add learner reading-level options and optional read-aloud support.
-3. Create an educator dashboard for progress, attempts, and hint usage.
-4. Add Level 2 using the same challenge engine.
-5. Pilot with grades 4–5 and 6–8 separately and adjust the reading level and difficulty.
+3. Create an educator dashboard for progress, attempts, research notes, and hint usage.
+4. Add instructor-authored mission packs using the data-driven challenge engine.
+5. Pilot with grades 4–5 and 6–8 separately and adjust reading level, research expectations, and difficulty.

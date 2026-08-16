@@ -16,91 +16,87 @@ async function render() {
         "x-forwarded-proto": "https",
       },
     }),
-    {
-      ASSETS: {
-        fetch: async () => new Response("Not found", { status: 404 }),
-      },
-    },
-    {
-      waitUntil() {},
-      passThroughOnException() {},
-    },
+    { ASSETS: { fetch: async () => new Response("Not found", { status: 404 }) } },
+    { waitUntil() {}, passThroughOnException() {} },
   );
 }
 
-test("server-renders the Cyber Quest level dashboard", async () => {
+test("server-renders the complete six-stage Cyber Quest campaign", async () => {
   const response = await render();
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
   const html = await response.text();
   assert.match(html, /<title>Cyber Quest — Learn\. Solve\. Protect\.<\/title>/i);
-  assert.match(html, /Choose a level/);
+  assert.match(html, /SIX-STAGE CAMPAIGN/);
+  assert.match(html, /Fifty-two original, playable missions/);
   assert.match(html, /Signal Lost/);
-  assert.match(html, /Go to level/);
+  assert.match(html, /The Copycat Account/);
+  assert.match(html, /Library Lockout/);
+  assert.match(html, /Festival Firewall/);
+  assert.match(html, /Midnight Archive/);
+  assert.match(html, /Operation Glasshouse/);
+  assert.match(html, /Enter stage/);
+  assert.match(html, /Finish Level 1/);
+  assert.match(html, /52(?:<!-- -->)? missions/);
   assert.match(html, /https:\/\/cyber-quest\.example\/og\.png/);
-  assert.doesNotMatch(html, /Cipher Scouts|codex-preview|Your site is taking shape/);
+  assert.doesNotMatch(html, /Coming next|codex-preview|Your site is taking shape/);
 });
 
-test("ships twelve progressive challenges and the requested workspace controls", async () => {
+test("defines 52 complete missions across six progressively harder levels", async () => {
+  const data = await readFile(new URL("../app/challenge-data.ts", import.meta.url), "utf8");
+  const challengeIds = data.match(/id:\s*"l\d-c\d+"/g) ?? [];
+  const uniqueIds = new Set(challengeIds);
+
+  assert.equal(challengeIds.length, 52);
+  assert.equal(uniqueIds.size, 52);
+  assert.equal((data.match(/\n\s+id:\s[1-6],/g) ?? []).length, 6);
+  for (const stage of [
+    "Cyber Scout",
+    "Digital Defender",
+    "Systems Investigator",
+    "Network Analyst",
+    "Forensics Specialist",
+    "Incident Commander",
+  ]) {
+    assert.match(data, new RegExp(stage));
+  }
+  for (const kind of ["text", "choice", "multi", "order", "terminal"]) {
+    assert.match(data, new RegExp(`kind:\\s*"${kind}"`));
+  }
+  assert.ok((data.match(/research:\s*\{/g) ?? []).length >= 8);
+  assert.ok((data.match(/hints:\s*\[/g) ?? []).length >= 52);
+  assert.ok((data.match(/manual:\s*\[/g) ?? []).length >= 52);
+  assert.match(data, /MITRE ATT&CK/);
+  assert.match(data, /NIST incident response lifecycle/);
+  assert.match(data, /SLSA provenance overview/);
+  assert.match(data, /Regular expressions/);
+  assert.match(data, /Chain of Custody/);
+  assert.doesNotMatch(data, /Coming next|TODO|placeholder challenge/i);
+});
+
+test("ships working progression, validation, research, terminal, and accessibility mechanics", async () => {
   const [page, css, packageJson] = await Promise.all([
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
     readFile(new URL("../package.json", import.meta.url), "utf8"),
   ]);
 
-  assert.match(page, /Hidden in Plain Sight/);
-  assert.match(page, /Bring Bolt Home/);
-  assert.match(page, /The Look-Alike Link/);
-  assert.match(page, /Permission Patrol/);
-  assert.match(page, /Wi-Fi Impostor/);
-  assert.match(page, /Login Log Hunt/);
-  assert.match(page, /File Fingerprint/);
-  assert.match(page, /Junior SOC Shift/);
-  assert.match(page, /Foundation/);
-  assert.match(page, /Junior Analyst/);
-  assert.match(page, /203\.0\.113\.42/);
-  assert.match(page, /SHA-256 INTEGRITY CHECK/);
-  assert.match(page, /contain-reset-verify-report/);
-  assert.match(page, /CHALLENGE \{activeChallenge\.id\} OF \{challenges\.length\}/);
-  assert.match(page, /12 challenges · Beginner/);
-  assert.match(page, /Finish a challenge to unlock the next one/);
-  assert.match(page, /Briefing/);
-  assert.match(page, /Field manual/);
-  assert.match(page, /Hint/);
-  assert.match(page, /Previous/);
-  assert.match(page, /Next/);
-  assert.match(page, /cat bolt\.txt/);
-  assert.match(page, /usage: "cat filename\.txt"/);
-  assert.match(page, /command: "pwd"/);
-  assert.match(page, /manualSteps/);
-  assert.doesNotMatch(page, /terminal-shortcuts/);
-  assert.match(page, /value: "microphone"/);
-  assert.match(page, /value: "location"/);
-  assert.match(page, /togglePermission/);
-  assert.match(page, /district-login\.school/);
-  assert.match(page, /district-it\.school/);
-  assert.match(page, /12 chronological events/);
-  assert.match(page, /09:54:05/);
-  assert.doesNotMatch(page, /status: "alert"/);
-  assert.match(page, /schedule\.csv/);
-  assert.match(page, /poster\.png/);
-  assert.match(page, /readme\.txt/);
-  assert.doesNotMatch(page, /file\.approved === file\.downloaded/);
-  assert.match(page, /Reset and clean up/);
-  assert.match(page, /Block and launch/);
-  assert.equal(page.match(/time: "\d{2}:\d{2}:\d{2}"/g)?.length, 12);
-  assert.equal(page.match(/approved: "[a-f0-9-]+"/g)?.length, 6);
-  assert.equal(page.match(/command: "(?:pwd|ls|cat|clear)"/g)?.length, 4);
-  assert.equal(page.match(/certificate: "Certificate:/g)?.length, 3);
+  assert.match(page, /localStorage\.setItem/);
+  assert.match(page, /levelIsComplete/);
+  assert.match(page, /isChallengeUnlocked/);
+  assert.match(page, /sameMembers/);
+  assert.match(page, /selected\.join\("\|"\)/);
+  assert.match(page, /runTerminal/);
+  assert.match(page, /ResearchDesk/);
+  assert.match(page, /setRevealedHints/);
   assert.match(page, /aria-live="polite"/);
-  assert.match(page, /Flag captured!/);
-  assert.match(page, /chooseAnswer\("sender", setSelectedPart\)/);
-  assert.match(css, /@keyframes confetti-fall/);
-  assert.match(css, /\.manual-reference/);
-  assert.match(css, /\.log-rows/);
+  assert.match(page, /role="tablist"/);
+  assert.match(page, /window\.confirm/);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
-  assert.match(css, /grid-template-columns:\s*310px minmax\(0,\s*1fr\)/);
-  assert.doesNotMatch(packageJson, /react-loading-skeleton/);
+  assert.match(css, /:focus-visible/);
+  assert.match(css, /min-height:\s*44px/);
+  assert.match(css, /grid-template-columns:\s*330px minmax\(0,\s*1fr\)/);
+  assert.match(packageJson, /cross-env/);
   await access(new URL("../public/og.png", import.meta.url));
 });
