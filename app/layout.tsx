@@ -14,7 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const metadataBase = new URL(`${protocol}://${host}`);
   const title = "Cyber Quest — Learn. Solve. Protect.";
   const description =
-    "A six-stage, 52-mission cybersecurity learning campaign that grows from careful observation to research-led incident response.";
+    "A playable story-driven cybersecurity challenge platform for elementary and middle school students.";
 
   return {
     metadataBase,
@@ -27,9 +27,9 @@ export async function generateMetadata(): Promise<Metadata> {
       images: [
         {
           url: new URL("/og.png", metadataBase).toString(),
-          width: 1734,
-          height: 907,
-          alt: "Cyber Quest: 52 missions across six cybersecurity learning stages",
+          width: 1731,
+          height: 909,
+          alt: "Cyber Quest: Learn, Solve, Protect",
         },
       ],
     },

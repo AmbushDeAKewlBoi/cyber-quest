@@ -1,3 +1,6 @@
+// ARCHIVED CHALLENGE BANK
+// Not imported by the Stage 1 legacy experience. Stages 2–6 stay here until they are added one at a time.
+
 export type ChallengeKind = "text" | "choice" | "multi" | "order" | "terminal";
 
 export type EvidenceBlock = {
@@ -248,6 +251,7 @@ export const levels: Level[] = [
         briefing:
           "Bolt is physically safe. The account and update path may not be. Build a response that reports, secures, verifies, and restores.",
         manual: [
+
           "Report suspicious activity before details are lost.",
           "Secure affected access through the real service.",
           "Verify software before reconnecting a device.",
@@ -498,6 +502,7 @@ export const levels: Level[] = [
         id: "l2-c2", number: 2, title: "Context Collapse", subtitle: "Question a cropped screenshot", points: 190,
         skill: "Source verification", tool: "Post archive", kind: "choice",
         objective: "Choose the strongest next step before treating the screenshot as authentic.",
+
         briefing: "A cropped image appears to show the principal canceling the fair. You have not yet seen the original post.",
         manual: ["Screenshots can remove dates, replies, usernames, and edits.", "Find the original source or an independent official confirmation.", "Do not amplify uncertain claims while checking."],
         hints: ["The question is not whether the pixels look edited.", "Seek a primary source."],
@@ -748,6 +753,7 @@ export const levels: Level[] = [
     description: "Reconstruct what happened from files, metadata, and competing timelines.",
     story: "A scholarship archive was accessed overnight. Work from preserved copies, decode timestamps and file structures, and build a timeline that separates fact from coincidence.",
     color: "#b34f69",
+
     icon: "0x",
     challenges: [
       {
@@ -922,3 +928,5 @@ export const totalChallengeCount = levels.reduce(
 export function totalPointsForLevel(level: Level) {
   return level.challenges.reduce((total, challenge) => total + challenge.points, 0);
 }
+
+
